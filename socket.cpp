@@ -1,5 +1,4 @@
 #include "socket.hpp"
-#include <iostream>
 
 #define PORT 7070
 
