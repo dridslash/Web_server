@@ -2,7 +2,7 @@
 
 #include "header.hpp"
 
-class clientsPackage {
+class clientsBox {
     public:
         std::set<clientInfo> connectedClients;
         clientInfo & getClient(int sock);

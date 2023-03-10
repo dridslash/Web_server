@@ -1,6 +1,6 @@
-#include "clientsPackage.hpp"
+#include "clientsBox.hpp"
 
-clientInfo & clientsPackage::getClient(int sock) {
+clientInfo & clientsBox::getClient(int sock) {
 	std::set<clientInfo>::iterator it = connectedClients.find(sock);
 	if (it != connectedClients.end())
 		return *it;
@@ -8,7 +8,7 @@ clientInfo & clientsPackage::getClient(int sock) {
 	return li.insert(clientInfo(sock))->first;
 }
 
-void clientsPackage::dropClient(int sock) {
+void clientsBox::dropClient(int sock) {
 	std::set<clientInfo>::iterator it = connectedClients.find(sock);
 	if (it != connectedClients.end()) {
 		std::cout << "Drop client" << std::endl;
@@ -18,7 +18,7 @@ void clientsPackage::dropClient(int sock) {
 	std::cout << "Drop_client not found!" << std::endl;
 }
 
-std::string clientsPackage::get_client_address(int sock) {
+std::string clientsBox::get_client_address(int sock) {
 	std::string addrBuffer;
 	std::set<clientInfo>::iterator it = connectedClients.find(sock);
 	if (it != connectedClients.end()) {
@@ -31,7 +31,7 @@ std::string clientsPackage::get_client_address(int sock) {
 	return addrBuffer;
 }
 
-fd_set clientsPackage::wait_on_clients(int sock) {
+fd_set clientsBox::wait_on_clients(int sock) {
 	fd_set reads;
 	FD_ZERO(&reads);
 	FD_SET(server, &reads);
@@ -48,7 +48,7 @@ fd_set clientsPackage::wait_on_clients(int sock) {
 	return reads;
 }
 
-void clientsPackage::send_400(int sock) {
+void clientsBox::send_400(int sock) {
 	const char *c400 = "HTTP/1.1 400 Bad Request\r\n"
            "Connection: close\r\n"
            "Content-Length: 11\r\n\r\nBad Request";
@@ -56,7 +56,7 @@ void clientsPackage::send_400(int sock) {
 	dropClient(sock);
 }
 
-void clientsPackage::send_404(int sock) {
+void clientsBox::send_404(int sock) {
 	const char *c404 = "HTTP/1.1 404 Not Found\r\n"
            "Connection: close\r\n"
            "Content-Length: 9\r\n\r\nNot Found";
@@ -64,7 +64,7 @@ void clientsPackage::send_404(int sock) {
     dropClient(sock);
 }
 
-void clientsPackage::serve_resource() {
+void clientsBox::serve_resource() {
 
 }
 

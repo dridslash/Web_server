@@ -6,9 +6,12 @@ class RequestMap {
         std::string PATH;
         std::string HTTPVersion;
     public:
+        RequestMap();
+        ~RequestMap();
         std::map<std::string, std::string> Request;
         std::string getHTTPMethod() const;
         std::string getPATH() const;
         std::string getHTTPVersion() const;
-        void RequestParse(std::string RequestFile);
+        void RequestParse(std::string s);
+        bool is_req_well_formed() const;
 };

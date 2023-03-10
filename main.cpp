@@ -1,8 +1,5 @@
-#include "header.hpp"
+#include "RequestPart.hpp"
 #include "socket.hpp"
-
-#define BUFFER_SIZE 1024
-
 
 class client_info {
 	public:
@@ -89,6 +86,7 @@ void PleinContentTypes(std::map<std::string, std::string> & map) {
 }
 
 int main() {
+	RequestMap requestFile;
 	PleinContentTypes(ContentTypes);
 	// fd_set master;
 	std::list<client_info> master;
@@ -105,10 +103,8 @@ int main() {
 	get_client(SOCKET.SocketFd, master);
 	maxfd = SOCKET.SocketFd;
     while (1) {
-		for(std::list<client_info>::iterator it = master.begin(); it != master.end(); it++) {
-			std::cout << it->socket << std::endl;
+		for(std::list<client_info>::iterator it = master.begin(); it != master.end(); it++)
 			FD_SET(it->socket, &copy);
-		}
 		// copy = master;
 		int socketCount = select(maxfd+1, &copy, NULL, NULL, NULL);
 
@@ -128,8 +124,9 @@ int main() {
 						close(connection);
 					}
 					else {
+						std::string str(buffer);
+						requestFile.RequestParse(str);
 						std::cout << "New client" << std::endl;
-						std::cout << buffer << std::endl;
 						send(connection, resp.c_str(), resp.size() + 1, 0);
 					}
 				}
@@ -142,6 +139,7 @@ int main() {
 						close(i);
 					}
 					else {
+						
 						std::cout << "New Message from old client" << std::endl;
 						std::ostringstream ss;
 						ss << "SOCKET #" << i << "\r\n";

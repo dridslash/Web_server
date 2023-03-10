@@ -16,3 +16,5 @@
 #include <string>
 #include <fcntl.h>
 #include <cstdio>
+
+#define BUFFER_SIZE 1024
