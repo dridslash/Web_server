@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/02 16:53:37 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/08 12:17:28 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/11 08:43:44 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <netdb.h>
 
 #define PORT 80
 #define backlog 20
@@ -31,6 +32,11 @@ int main(){
                         "Server: webserver-c\r\n"
                         "Content-type: text/html\r\n\r\n"
                         "<html>im the server here is you response</html>\r\n");
+
+                        std::string msg_from_client ("HTTP/1.1 200 OK\r\n"
+                        "Server: webserver-c\r\n"
+                        "Content-type: text/html\r\n\r\n"
+                        "<html>im the client here is you response</html>\r\n");
 
     //////----connection and binding ------------////
     
@@ -66,86 +72,98 @@ int main(){
 
     std::cout << "Server listening\n";
     
-    fd_set mother_listner;
+    // fd_set mother_listner;
 
-    FD_ZERO(&mother_listner);
-    FD_SET(socket_file,&mother_listner);
-    int f_max = socket_file;
+    // FD_ZERO(&mother_listner);
+    // FD_SET(socket_file,&mother_listner);
+    // int f_max = socket_file;
     
-    for(;;){
-        fd_set copy_ct = mother_listner;
-       int rdc = select(f_max + 1, &copy_ct,nullptr,nullptr,nullptr);
+    // for(;;){
+    //     fd_set copy_ct = mother_listner;
+    //    int rdc = select(f_max + 1, &copy_ct,nullptr,nullptr,nullptr);
 
-        for(int i = 0; i <= f_max + 1; i++){
-                int sock = i;
-            if (FD_ISSET(sock,&copy_ct)){
-             if (sock == socket_file){
-                // ACCPET CONNECTION
-                int client_socket = accept(socket_file,(struct sockaddr *)&host_addd,(socklen_t*)&host_addlen);
-                //std::cout << "Enter\n";
+    //     for(int i = 0; i <= f_max + 1; i++){
+    //             int sock = i;
+    //         if (FD_ISSET(sock,&copy_ct)){
+    //          if (sock == socket_file){
+    //             // ACCPET CONNECTION
+    //             int client_socket = accept(socket_file,(struct sockaddr *)&host_addd,(socklen_t*)&host_addlen);
+    //             //std::cout << "Enter\n";
                 
-                if (client_socket < 0){
-                    std::cout << "Error in accepting socket\n";
-                    //FD_CLR(client_socket,&mother_listner);
-                    close(client_socket); 
-                }
-                fcntl(socket_file,F_SETFL,O_NONBLOCK);
-                std::cout << "Connetion made"<<std::endl;
-                FD_SET(client_socket,&mother_listner);
-                if (client_socket >= f_max)
-                        f_max = client_socket;
-                std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
-                "<header>Welcome to the server</header>\r\n");
-                send(client_socket,wel.c_str(),wel.size() + 1,0);
-            }
-            else{
-                //fcntl(socket_file,F_SETFL,O_NONBLOCK);
-                if (recv(sock,buffer,BUFFER_SIZE,0) <= 0){
-                    close(sock);
-                    FD_CLR(sock,&mother_listner);
-                }
-                //std::cout << "here after recv\n";
-            }
-            }
+    //             if (client_socket < 0){
+    //                 std::cout << "Error in accepting socket\n";
+    //                 //FD_CLR(client_socket,&mother_listner);
+    //                 close(client_socket); 
+    //             }
+    //             fcntl(socket_file,F_SETFL,O_NONBLOCK);
+    //             std::cout << "Connetion made"<<std::endl;
+    //             FD_SET(client_socket,&mother_listner);
+    //             if (client_socket >= f_max)
+    //                     f_max = client_socket;
+    //             std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
+    //             "<header>Welcome to the server</header>\r\n");
+    //             send(client_socket,wel.c_str(),wel.size() + 1,0);
+    //         }
+    //         else{
+    //             //fcntl(socket_file,F_SETFL,O_NONBLOCK);
+    //             if (recv(sock,buffer,BUFFER_SIZE,0) <= 0){
+    //                 close(sock);
+    //                 FD_CLR(sock,&mother_listner);
+    //             }
+    //             char add_client[100];
+    //             char ser_info[100];
+    //             getnameinfo((struct sockaddr*)&socket_file,sizeof(socket_file),
+    //                 add_client,100,ser_info,100,NI_NUMERICHOST);
+    //             std::cout << add_client << "--->" << ser_info << std::endl;
+    //             //std::cout << "here after recv\n";
+    //         }
+    //         }
+    //     }
+    //     //}
+    //     //else
+    //        // continue;
+    // }
+    int old_socket;
+    for(;;){
+        int new_socket  = accept(socket_file,(struct sockaddr *)&host_addd,(socklen_t*)&host_addlen);
+        if (new_socket < 0){
+            std::cout << "Error in accepting socket\n";
+            continue;
         }
-        //}
-        //else
-           // continue;
-    }
-    
-//     for(;;){
-//         int new_socket  = accept(socket_file,(struct sockaddr *)&host_addd,(socklen_t*)&host_addlen);
-//         if (new_socket < 0){
-//             std::cout << "Error in accepting socket\n";
-//             continue;
-//         }
         
-//         std::cout << "Connetion made\n";
+        old_socket = new_socket;
+        std::cout << "Connetion made\n";
 
-//         int sock_client = getsockname(new_socket, (struct sockaddr *)&client_addd, (socklen_t*)&client_addlen);
+        int sock_client = getsockname(new_socket, (struct sockaddr *)&client_addd, (socklen_t*)&client_addlen);
 
-//         if (sock_client < 0){
-//             perror("Getsockname error");
-//             continue;
-//         }
+        if (sock_client < 0){
+            perror("Getsockname error");
+            continue;
+        }
 
         
-//         //receive from client
-//         int get_read = recv(new_socket,buffer,BUFFER_SIZE,0);
-//         if (get_read < 0){
-//             perror("Error in reading\n");
-//             continue;
-//         }
+        //receive from client
+        int get_read = recv(old_socket,buffer,BUFFER_SIZE,0);
+        if (get_read < 0){
+            perror("Error in reading\n");
+            continue;
+        }
+
+        if (old_socket != socket_file){
+            send(socket_file,response.c_str(),response.size(),0);
+        }
+        else
+          int get_read = recv(old_socket,buffer,BUFFER_SIZE,0);  
         
-//         //printf("[%s:%u]\n", inet_ntoa(client_addd.sin_addr),
-//               // ntohs(client_addd.sin_port));
+        //printf("[%s:%u]\n", inet_ntoa(client_addd.sin_addr),
+              // ntohs(client_addd.sin_port));
                
-//         // send a response to client
-//         int send_msg = send(new_socket,response.c_str(),response.size(),0);
-//         if (send_msg < 0){
-//             perror("Error in sending\n");
-//             continue;
-//         }
-//         close(new_socket);
-//    }
+        // send a response to client
+        int send_msg = send(old_socket,response.c_str(),response.size(),0);
+        if (send_msg < 0){
+            perror("Error in sending\n");
+            continue;
+        }
+        close(new_socket);
+   }
 }
