@@ -5,6 +5,7 @@ class RequestMap {
         std::string HTTPMethod;
         std::string PATH;
         std::string HTTPVersion;
+        bool IsParse;
     public:
         RequestMap();
         ~RequestMap();

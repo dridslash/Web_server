@@ -86,6 +86,8 @@ void PleinContentTypes(std::map<std::string, std::string> & map) {
 }
 
 int main() {
+	std::string filename("test");
+	std::cout << filename.find('\n') << std::endl;
 	RequestMap requestFile;
 	PleinContentTypes(ContentTypes);
 	// fd_set master;
@@ -124,8 +126,19 @@ int main() {
 						close(connection);
 					}
 					else {
-						std::string str(buffer);
-						requestFile.RequestParse(str);
+						std::string resp1;
+						std::ifstream myfile1("request.txt");
+						if ( myfile1.is_open() ) {
+							std::string newresp;
+							std::getline(myfile1, newresp);
+							while ( myfile1 ) {
+								resp1.append(newresp);
+								resp1.append(1, '\n');
+								std::getline(myfile1, newresp);
+							}
+						}
+						// std::string str(buffer);
+						requestFile.RequestParse(resp1);
 						std::cout << "New client" << std::endl;
 						send(connection, resp.c_str(), resp.size() + 1, 0);
 					}

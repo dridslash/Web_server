@@ -17,6 +17,7 @@ std::string RequestMap::getHTTPVersion() const {
 
 void RequestMap::RequestParse(std::string s) {
     std::string copy(s);
+    std::string Line;
     std::string Key;
     std::string Value;
     std::string delimiter1 = " ";
@@ -30,14 +31,22 @@ void RequestMap::RequestParse(std::string s) {
     copy = copy.substr(copy.find(delimiter2) + 1);
     // -------------HTTP Headers------------------
     while (copy.length()) {
-        Key = copy.substr(0, copy.find(delimiter1) - 1);
-        copy = copy.substr(copy.find(delimiter1) + 1);
-        Value = copy.substr(0, copy.find(delimiter2));
-        copy = copy.substr(copy.find(delimiter2) + 1);
-        Request.insert(std::make_pair(Key, Value));
+        Line = copy.substr(0, copy.find(delimiter2));
+        Key = Line.substr(0, Line.find(delimiter1) - 1);
+        if (Line.find(delimiter1) + 1 < Line.length()) {
+            Line = Line.substr(Line.find(delimiter1) + 1);
+            if (Line.find(delimiter1) > Line.length()) {
+                IsParse = false;
+                return ;
+            }
+                Line = Line.substr(Line.find(delimiter1) + 1);
+         Value = Line.substr(0, Line.find(delimiter2));
+        // copy = copy.substr(copy.find(delimiter2) + 1);
+        // Request.insert(std::make_pair(Key, Value));
     }
+    std::cout << HTTPMethod << " " << PATH << " " << HTTPVersion << std::endl;
     for (std::map<std::string, std::string>::iterator it = Request.begin(); it != Request.end(); it++)
-        std::cout << it->first << " " << it->second <<std::endl;
+        std::cout << it->first << " *" << it->second <<std::endl;
     std::cout << Request.size() <<std::endl;
 }
 
