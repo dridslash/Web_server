@@ -1,5 +1,6 @@
 #include "RequestPart.hpp"
 #include "socket.hpp"
+#include "ConfigFile.hpp"
 
 class client_info {
 	public:
@@ -85,10 +86,12 @@ void PleinContentTypes(std::map<std::string, std::string> & map) {
 	}
 }
 
-int main() {
-	std::string filename("test");
-	std::cout << filename.find('\n') << std::endl;
+int main(int arc, char **arv) {
 	RequestMap requestFile;
+	Config config;
+	if (config.ConfigParse(arv[1]) == -1)
+		return  -1;
+	std::cout << config.ConfigList.front().root << std::endl;
 	PleinContentTypes(ContentTypes);
 	// fd_set master;
 	std::list<client_info> master;
@@ -97,7 +100,7 @@ int main() {
 	Socket SOCKET;
 	std::string resp;
 	char buffer[BUFFER_SIZE];
-    ResponseFile(resp, "index.html");
+    ResponseFile(resp, "public/index.html");
     if (SOCKET.accept_new_connections()) return -1;
 
 	FD_ZERO(&copy);
@@ -114,37 +117,17 @@ int main() {
 			if (FD_ISSET(i, &copy)) {
 				if (i == SOCKET.SocketFd) {
 					int connection = accept(i, NULL, NULL);
-					if (connection == -1)
+					if (connection == -1) {
 						perror("webserv (accept)");
-					get_client(connection, master);
-					if (connection > maxfd)
-                        maxfd = connection;
-					setnonblocking(connection);
-					int bytesIn = recv(connection, buffer, BUFFER_SIZE, 0);
-					if (bytesIn <= 0) {
-						drop_client(connection, master);
 						close(connection);
-					}
-					else {
-						std::string resp1;
-						std::ifstream myfile1("request.txt");
-						if ( myfile1.is_open() ) {
-							std::string newresp;
-							std::getline(myfile1, newresp);
-							while ( myfile1 ) {
-								resp1.append(newresp);
-								resp1.append(1, '\n');
-								std::getline(myfile1, newresp);
-							}
-						}
-						// std::string str(buffer);
-						requestFile.RequestParse(resp1);
+					} else {
 						std::cout << "New client" << std::endl;
-						send(connection, resp.c_str(), resp.size() + 1, 0);
+						get_client(connection, master);
+						if (connection > maxfd)
+							maxfd = connection;
 					}
 				}
 				else {
-					std::cout << "Message from old client" << std::endl;
 					setnonblocking(i);
 					int bytesIn = recv(i, buffer, BUFFER_SIZE, 0);
 					if (bytesIn <= 0) {
@@ -152,12 +135,23 @@ int main() {
 						close(i);
 					}
 					else {
-						
-						std::cout << "New Message from old client" << std::endl;
-						std::ostringstream ss;
-						ss << "SOCKET #" << i << "\r\n";
-						std::string strOut = ss.str();
-						send(i, strOut.c_str(), strOut.size() + 1, 0);
+						std::cout << "Message from old client" << std::endl;
+						// std::string resp1;
+						// std::ifstream myfile1("request.txt");
+						// if ( myfile1.is_open() ) {
+						// 	std::string newresp;
+						// 	std::getline(myfile1, newresp);
+						// 	while ( myfile1 ) {
+						// 		resp1.append(newresp);
+						// 		resp1.append(1, '\n');
+						// 		std::getline(myfile1, newresp);
+						// 	}
+						// }
+						// // std::string str(buffer);
+						// requestFile.RequestParse(resp1);
+						// requestFile.IsReqWillFormed();
+						// std::cout << requestFile.getStatusCode() << std::endl;
+						send(i, resp.c_str(), resp.size() + 1, 0);
 					}
 				}
 			}

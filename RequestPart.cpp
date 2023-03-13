@@ -1,55 +1,72 @@
 #include "RequestPart.hpp"
 
-RequestMap::RequestMap() {}
+#define NEWLINE "\n"
+
+RequestMap::RequestMap() : StatusCode(0) {}
 RequestMap::~RequestMap() {}
 
 std::string RequestMap::getHTTPMethod() const {
     return HTTPMethod;
 }
 
-std::string RequestMap::getPATH() const {
-    return PATH;
+std::string RequestMap::getPath() const {
+    return Path;
 }
 
 std::string RequestMap::getHTTPVersion() const {
     return HTTPVersion;
 }
 
-void RequestMap::RequestParse(std::string s) {
-    std::string copy(s);
-    std::string Line;
-    std::string Key;
-    std::string Value;
-    std::string delimiter1 = " ";
-    std::string delimiter2 = "\n";
-    // -------------Request Line------------------
-    HTTPMethod = copy.substr(0, copy.find(delimiter1));
-    copy = copy.substr(copy.find(delimiter1) + 1);
-    PATH = copy.substr(0, copy.find(delimiter1));
-    copy = copy.substr(copy.find(delimiter1) + 1);
-    HTTPVersion = copy.substr(0, copy.find(delimiter2));
-    copy = copy.substr(copy.find(delimiter2) + 1);
-    // -------------HTTP Headers------------------
-    while (copy.length()) {
-        Line = copy.substr(0, copy.find(delimiter2));
-        Key = Line.substr(0, Line.find(delimiter1) - 1);
-        if (Line.find(delimiter1) + 1 < Line.length()) {
-            Line = Line.substr(Line.find(delimiter1) + 1);
-            if (Line.find(delimiter1) > Line.length()) {
-                IsParse = false;
-                return ;
-            }
-                Line = Line.substr(Line.find(delimiter1) + 1);
-         Value = Line.substr(0, Line.find(delimiter2));
-        // copy = copy.substr(copy.find(delimiter2) + 1);
-        // Request.insert(std::make_pair(Key, Value));
-    }
-    std::cout << HTTPMethod << " " << PATH << " " << HTTPVersion << std::endl;
-    for (std::map<std::string, std::string>::iterator it = Request.begin(); it != Request.end(); it++)
-        std::cout << it->first << " *" << it->second <<std::endl;
-    std::cout << Request.size() <<std::endl;
+int RequestMap::getStatusCode() const {
+    return StatusCode;
 }
 
-bool RequestMap::is_req_well_formed() const {
+void RequestMap::RequestParse(std::string s) {
+    std::string Key, Value, Line;
+    // -------------Request Line------------------
+    Line = s.substr(0, s.find(NEWLINE));
+    s = s.substr(s.find(NEWLINE) + 1);
+    std::stringstream ss(Line);
+    ss >> HTTPMethod >> Path >> HTTPVersion;
+    // -------------HTTP Headers------------------
+    Line = s.substr(0, s.find(NEWLINE));
+    while (Line.length() > 1) {
+        std::stringstream ss(Line);
+        ss >> Key >> Value;
+        Request.insert(std::make_pair(Key.substr(0, Key.length() - 1), Value));
+        s = s.substr(s.find(NEWLINE) + 1);
+        Line = s.substr(0, s.find(NEWLINE));
+    }
+    if (s.length()) Body = s;
+}
+
+void RequestMap::StoreCharURI(std::set<char> & CharURI) {
+    char mychars[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z', 'a', 'b', 'c', 'e', 'f', 'g', 'h',
+    'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w' ,'x', 'y', 'z',
+    '0', '1', '2', '3', '4', '5' ,'6', '7', '8', '9', '-', '.', '_', '~', ':', '/', '?',
+    '#', '[', ']', '@', '!', '$', '&', 39, '(', ')', '*', '+', ',', ';', '=', '%'};
+    CharURI.insert(mychars, mychars + 83);
+}
+
+bool RequestMap::IsReqWillFormed() {
+    // store all characters allowed in the URI
+    std::set<char> CharURI;
+    StoreCharURI(CharURI);
+    std::map<std::string, std::string>::iterator it = Request.find("Transfer-Encoding");
+    if (it != Request.end() && it->second == "chunked") {
+        StatusCode = 501;
+        return false;
+    }
+    if (it == Request.end() && Request.find("Content-Length") == Request.end() && HTTPMethod == "POST") {
+        StatusCode = 400;
+        return false;
+    }
+    for (std::string::size_type i = 0; i < Path.size(); i++) {
+        if (CharURI.find(Path[i]) == CharURI.end()) {
+            StatusCode = 400;
+            return false;
+        }
+    }
     return true;
 }

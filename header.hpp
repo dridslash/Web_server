@@ -3,6 +3,7 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #include <map>
+#include <array>
 #include <utility>
 #include <list>
 #include <set>
