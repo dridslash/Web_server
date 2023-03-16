@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/15 16:45:41 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/16 18:14:43 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,10 +213,48 @@ int main(){
     
     //y- ----------------------------------------------------------
 
-
+    //b- /////////////////////////////---KQUEUE---------/////////////////////
+    
     int kq = kqueue();
     assert(kq > 0);
+    struct kevent event_set;
+    struct kevent events[10];
+    EV_SET(&event_set,server_socket,EVFILT_READ,EV_ADD | EV_CLEAR, 0 ,0 ,0);
+    assert(kevent(kq,&event_set,1,NULL,0, NULL) == 0);
+    int n__events = 0;
+    while(true){
+        int n__events = kevent(kq,NULL,0,events,10, NULL);
+
+        for(int i = 0 ; i < n__events ; i++){
+            if (events[i].filter & EVFILT_READ){
+                    if (events[i].ident == server_socket){
+                int client_socket = accept(server_socket,reinterpret_cast<struct sockaddr*>(&host_addd),
+                            reinterpret_cast<socklen_t*>(&host_addlen));
     
-    
-    
+                if (client_socket < 0){
+                    std::cout << "Error in accepting socket\n";
+                    close(client_socket); 
+                }
+                if (recv(client_socket,buffer,BUFFER_SIZE,0) <= 0){
+                    close(client_socket);
+                }
+                std::cout << buffer << std::endl;
+                std::cout << "Connetion made"<<std::endl;
+                EV_SET(&event_set,client_socket,EVFILT_READ,EV_ADD | EV_CLEAR, 0 ,0 ,0);
+                assert(kevent(kq,&event_set,1,NULL,0, NULL) == 0);
+                std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
+                "<header>Welcome to the server</header>\r\n");
+                send(client_socket,wel.c_str(),wel.size() + 1,0);
+                    }
+                    else{
+                     if (recv(i,buffer,BUFFER_SIZE,0) <= 0){
+                    close(i);
+                    }
+                }
+            }
+        }
+    }
+    close(kq);
+
+    //b- ////////////////////////////////////////////////////////////
 }

@@ -23,5 +23,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/event.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
 
 #define BUFFER_SIZE 1024

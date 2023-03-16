@@ -14,7 +14,7 @@ class ClientInfo {
 		explicit ClientInfo(int socket):ClSocket(socket){}
 		// socklen_t client_address_len;
 		// struct sockaddr_in ClientAddress;
-		// int ClSocket;
+		int ClSocket;
 		std::string ClientRequest;
 		int BytesReceived;
 };
