@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/16 18:14:43 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/16 18:38:43 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,10 +60,10 @@ int main(){
     //////----connection and binding ------------////
     
    int server_socket = socket(AF_INET,SOCK_STREAM,0);
-//    if (setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
-//         perror("setsockopt failed");
-//         return (0);
-//    }
+   if (setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
+        perror("setsockopt failed");
+        return (0);
+   }
     if (server_socket == -1){
             perror("Error in creating a socket\n");
             return (0);
@@ -227,7 +227,7 @@ int main(){
 
         for(int i = 0 ; i < n__events ; i++){
             if (events[i].filter & EVFILT_READ){
-                    if (events[i].ident == server_socket){
+                if (events[i].ident == server_socket){
                 int client_socket = accept(server_socket,reinterpret_cast<struct sockaddr*>(&host_addd),
                             reinterpret_cast<socklen_t*>(&host_addlen));
     
