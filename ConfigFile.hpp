@@ -5,14 +5,14 @@
 class LocationBlocks {
     public:
     LocationBlocks();
+    //~LocationBlocks();
     std::string                 path;
     std::string                 root;
     std::string                 AutoIndex;
-    std::vector<std::string>    httpmethods;
-    std::vector<std::string>    index;
-    std::vector<std::string>    try_files;
-    std::vector<std::string>    Return;
-    void setPath(std::string);
+    std::vector<std::string>*   httpmethods;
+    std::vector<std::string>*   index;
+    std::vector<std::string>*   try_files;
+    std::vector<std::string>*   Return;
     void setAutoIndex(std::string);
     void setRoot(std::string);
     void setMethods(std::vector<std::string>);
@@ -24,30 +24,29 @@ class LocationBlocks {
 class ServerBlocks {
     public:
     ServerBlocks();
-    std::vector<LocationBlocks>   LocationBlocks;
-    std::string                 ServerName;
-    std::string                 root;
-    std::string                 MaxBodySize;
-    std::vector<std::string>    listen;
-    std::vector<std::string>    index;
-    std::vector<std::string>    ErrorPage;
+    std::vector<LocationBlocks*>            LocationBlocks;
+    std::string                             ServerName;
+    std::string                             root;
+    std::vector<std::string>                listen;
+    std::vector<std::string>                index;
+    std::map<std::set<int>, std::string>    ErrorPage;
     void setIndex(std::vector<std::string>);
-    void setErrorPage(std::vector<std::string>);
+    void setErrorPage(std::pair<std::set<int>, std::string>);
     void setServerName(std::string);
     void setRoot(std::string);
-    void setMaxBodySize(std::string);
 };
 
 class Config {
     public:
         typedef std::pair<std::pair<std::string, std::string>, int> ErrorBox;
         Config();
-        std::vector<ServerBlocks> ConfigList;
+        std::string                 MaxBodySize;
+        std::vector<ServerBlocks>   ConfigList;
+        std::set<std::string>       Directives;
         int ConfigParse(char *);
-        std::set<std::string> Directives;
         ErrorBox ServerBlock(ServerBlocks & , std::vector<std::string> & , int & );
-        ErrorBox LocationBlock(LocationBlocks &, ServerBlocks &, std::vector<std::string> & , int & );
-        ErrorBox DirectivesMoreThanOneValue(LocationBlocks & , ServerBlocks & , std::vector<std::string> & , int & i, int );
-        ErrorBox DirectivesOneValue(LocationBlocks & , ServerBlocks & , std::vector<std::string> & , int & , int );
+        ErrorBox LocationBlock(LocationBlocks *, ServerBlocks &, std::vector<std::string> & , int & );
+        ErrorBox DirectivesMoreThanOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , int & i, int );
+        ErrorBox DirectivesOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , int & , int );
         void HandleErrors(ServerBlocks & , ErrorBox );
 };

@@ -17,5 +17,8 @@
 #include <string>
 #include <fcntl.h>
 #include <cstdio>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <libgen.h>
 
 #define BUFFER_SIZE 1024
