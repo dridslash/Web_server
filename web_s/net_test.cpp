@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/02 16:53:37 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/11 08:43:44 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/11 14:41:56 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ int main(){
                 
     //             if (client_socket < 0){
     //                 std::cout << "Error in accepting socket\n";
-    //                 //FD_CLR(client_socket,&mother_listner);
+    //                 FD_CLR(client_socket,&mother_listner);
     //                 close(client_socket); 
     //             }
     //             fcntl(socket_file,F_SETFL,O_NONBLOCK);
@@ -110,11 +110,6 @@ int main(){
     //                 close(sock);
     //                 FD_CLR(sock,&mother_listner);
     //             }
-    //             char add_client[100];
-    //             char ser_info[100];
-    //             getnameinfo((struct sockaddr*)&socket_file,sizeof(socket_file),
-    //                 add_client,100,ser_info,100,NI_NUMERICHOST);
-    //             std::cout << add_client << "--->" << ser_info << std::endl;
     //             //std::cout << "here after recv\n";
     //         }
     //         }
@@ -123,7 +118,7 @@ int main(){
     //     //else
     //        // continue;
     // }
-    int old_socket;
+//     int old_socket;
     for(;;){
         int new_socket  = accept(socket_file,(struct sockaddr *)&host_addd,(socklen_t*)&host_addlen);
         if (new_socket < 0){
@@ -131,35 +126,23 @@ int main(){
             continue;
         }
         
-        old_socket = new_socket;
         std::cout << "Connetion made\n";
 
-        int sock_client = getsockname(new_socket, (struct sockaddr *)&client_addd, (socklen_t*)&client_addlen);
 
-        if (sock_client < 0){
-            perror("Getsockname error");
-            continue;
-        }
-
+        int sockn = getsockname(new_socket, (struct sockaddr *)&client_addd,
+                                (socklen_t *)&client_addlen);
         
         //receive from client
-        int get_read = recv(old_socket,buffer,BUFFER_SIZE,0);
-        if (get_read < 0){
-            perror("Error in reading\n");
-            continue;
-        }
-
-        if (old_socket != socket_file){
-            send(socket_file,response.c_str(),response.size(),0);
-        }
-        else
-          int get_read = recv(old_socket,buffer,BUFFER_SIZE,0);  
+        // int get_read = recv(new_socket,buffer,BUFFER_SIZE,0);
+        // if (get_read < 0){
+        //     perror("Error in reading\n");
+        //     continue;
+        // }
         
-        //printf("[%s:%u]\n", inet_ntoa(client_addd.sin_addr),
-              // ntohs(client_addd.sin_port));
+        std::cout <<inet_ntoa(client_addd.sin_addr) << ":" << ntohs(client_addd.sin_port) << std::endl;
                
         // send a response to client
-        int send_msg = send(old_socket,response.c_str(),response.size(),0);
+        int send_msg = send(new_socket,response.c_str(),response.size(),0);
         if (send_msg < 0){
             perror("Error in sending\n");
             continue;
