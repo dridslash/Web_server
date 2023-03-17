@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/16 19:00:28 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/17 11:02:17 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #define PORT 80
 #define backlog 20
 #define BUFFER_SIZE 1024
-#define MIRCO_PORTION 1000000
+// #define MICRO_PORTION 1000000
 
 
 //------------------------POLL_FUNCTIONS-----------------------------
