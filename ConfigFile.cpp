@@ -22,9 +22,31 @@ void LocationBlocks::setTryFiles(std::vector<std::string> str) { try_files->assi
 void LocationBlocks::setReturn(std::vector<std::string> str) { Return->assign(str.begin(), str.end()); }
 
 
-ServerBlocks::ServerBlocks() : listen(1, "80") {}
+ServerBlocks::ServerBlocks() : listen(1, "80") {
+    std::set<int> s;
+    ErrorPage.insert(std::make_pair(s, "/Errors/404.html"));
+    s.clear(); s.insert(403);
+    ErrorPage.insert(std::make_pair(s, "/Errors/403.html"));
+    s.clear(); s.insert(404);
+    ErrorPage.insert(std::make_pair(s, "/Errors/404.html"));
+    s.clear(); s.insert(405);
+    ErrorPage.insert(std::make_pair(s, "/Errors/405.html"));
+    s.clear(); s.insert(409);
+    ErrorPage.insert(std::make_pair(s, "/Errors/409.html"));
+    s.clear(); s.insert(413);
+    ErrorPage.insert(std::make_pair(s, "/Errors/413.html"));
+    s.clear(); s.insert(414);
+    ErrorPage.insert(std::make_pair(s, "/Errors/414.html"));
+    s.clear(); s.insert(501);
+    ErrorPage.insert(std::make_pair(s, "/Errors/501.html"));
+}
 void ServerBlocks::setIndex(std::vector<std::string> vec) { index = vec; }
-void ServerBlocks::setErrorPage(std::pair<std::set<int>, std::string> vec) { ErrorPage.insert(vec); }
+void ServerBlocks::setErrorPage(std::pair<std::set<int>, std::string> vec) { 
+    std::map<std::set<int>, std::string>::iterator found = ErrorPage.find(vec.first);
+    if (found != ErrorPage.end())
+        ErrorPage.erase(ErrorPage.find(vec.first));
+    ErrorPage.insert(vec);
+}
 void ServerBlocks::setServerName(std::string str) { ServerName = str;}
 void ServerBlocks::setRoot(std::string str) { root = str;}
 
@@ -34,7 +56,7 @@ Config::Config() : MaxBodySize("1000000") {
     Directives.insert(myArray, myArray + 6);
 }
 
-Config::ErrorBox    Config::ServerBlock(ServerBlocks & server, std::vector<std::string> & Store, int & i) {
+Config::ErrorBox    Config::ServerBlock(ServerBlocks & server, std::vector<std::string> & Store, size_t & i) {
     ErrorBox r;
     int k = 0;
     if (Store[i] == "server" && Store[i+1] == "{" && Directives.find(Store[i+2]) != Directives.end())
@@ -61,7 +83,7 @@ Config::ErrorBox    Config::ServerBlock(ServerBlocks & server, std::vector<std::
     return std::make_pair(std::make_pair("NO", "ERROR"), 0);
 }
 
-Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, int & i) {
+Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, size_t & i) {
     ErrorBox r;
     if (Store[i] == "location" && Store[i+1] != "{" && Store[i+1] != "}" && Store[i+2] == "{") {
         location->path = Store[i+1];
@@ -78,11 +100,11 @@ Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlock
         }
     }
     i++;
-    server.LocationBlocks.push_back(location);
+    server.Locations.push_back(location);
     return std::make_pair(std::make_pair("GOOD", "JOB"), 0);
 }
 
-Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, int & i, int FLAG) {
+Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, size_t & i, int FLAG) {
     std::vector<std::string> Values;
     std::string Directive;
     size_t found = Store[i+1].find(';');
@@ -111,7 +133,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             IstillHave = Store[i].substr(Store[i].find(';') + 1, Store[i].length());
             if (!Dir) {
                 std::set<int> ValueOfSet;
-                for (int i = 0; i < Values.size() - 1; i++) {
+                for (size_t i = 0; i < Values.size() - 1; i++) {
                     if (Values[i].size() != strspn(Values[i].c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
                     int var = stoi(Values[i]);
                     if (var < 300 || var > 599) return std::make_pair(std::make_pair(Store[i+1], Store[i]), -2);
@@ -144,7 +166,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
                 if (stoi(Values[0]) < 0 || stoi(Values[0]) > 999) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 4);
             }
             if (Dir == 1) {
-                for (int i = 1; i < Values.size(); i++) {
+                for (size_t i = 1; i < Values.size(); i++) {
                     if (Values[i] != "POST" && Values[i] != "DELETE" && Values[i] != "GET") return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
                 }
             }
@@ -155,7 +177,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
     else Store[i] = IstillHave;
     return std::make_pair(std::make_pair("GOOD", "JOB"), 0);
 }
-Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, int & i, int FLAG) {
+Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, ServerBlocks & server, std::vector<std::string> & Store, size_t & i, int FLAG) {
     size_t found = Store[++i].find(';');
     if (!found) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
     if (found == std::string::npos && Directives.find(Store[i]) != Directives.end()) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
@@ -209,7 +231,7 @@ void Config::HandleErrors(ServerBlocks & server, Config::ErrorBox ErrorMsg) {
             exit(1);
         default:
             server.listen.erase(server.listen.begin());
-            ConfigList.push_back(server);
+            Servers.push_back(server);
             break;
     }
 }
@@ -238,7 +260,7 @@ int    Config::ConfigParse(char *ConfigPath) {
     }
     Store.pop_back();
     // Server Block
-    for (int i = 0; i < Store.size(); i++) {
+    for (size_t i = 0; i < Store.size(); i++) {
         ServerBlocks server;
         if (Store[i] == "client_max_body_size")
             r = DirectivesOneValue(NULL, server, Store, i, -1);
@@ -246,14 +268,14 @@ int    Config::ConfigParse(char *ConfigPath) {
             r = ServerBlock(server, Store, i);
         HandleErrors(server, r);
     }
-    for (std::vector<ServerBlocks>::iterator it = ConfigList.begin(); it != ConfigList.end(); it++) {
+    for (std::vector<ServerBlocks>::iterator it = Servers.begin(); it != Servers.end(); it++) {
         if (it->index.size() == 0) {
             it->index.push_back("index.html");
         }
         if (it->ErrorPage.size() == 0) {
             std::set<int> SetContainer;
             SetContainer.insert(404);
-            it->ErrorPage.insert(std::make_pair(SetContainer, "/404.html"));
+            it->setErrorPage(std::make_pair(SetContainer, "/Error/404.html"));
         }
     }
     return 0;

@@ -24,7 +24,7 @@ class LocationBlocks {
 class ServerBlocks {
     public:
     ServerBlocks();
-    std::vector<LocationBlocks*>            LocationBlocks;
+    std::vector<LocationBlocks*>            Locations;
     std::string                             ServerName;
     std::string                             root;
     std::vector<std::string>                listen;
@@ -41,12 +41,12 @@ class Config {
         typedef std::pair<std::pair<std::string, std::string>, int> ErrorBox;
         Config();
         std::string                 MaxBodySize;
-        std::vector<ServerBlocks>   ConfigList;
+        std::vector<ServerBlocks>   Servers;
         std::set<std::string>       Directives;
         int ConfigParse(char *);
-        ErrorBox ServerBlock(ServerBlocks & , std::vector<std::string> & , int & );
-        ErrorBox LocationBlock(LocationBlocks *, ServerBlocks &, std::vector<std::string> & , int & );
-        ErrorBox DirectivesMoreThanOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , int & i, int );
-        ErrorBox DirectivesOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , int & , int );
+        ErrorBox ServerBlock(ServerBlocks & , std::vector<std::string> & , size_t & );
+        ErrorBox LocationBlock(LocationBlocks *, ServerBlocks &, std::vector<std::string> & , size_t & );
+        ErrorBox DirectivesMoreThanOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , size_t & i, int );
+        ErrorBox DirectivesOneValue(LocationBlocks * , ServerBlocks & , std::vector<std::string> & , size_t & , int );
         void HandleErrors(ServerBlocks & , ErrorBox );
 };
