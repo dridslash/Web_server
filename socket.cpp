@@ -1,5 +1,7 @@
 #include "socket.hpp"
 
+#define PORT 7070
+
 Socket::Socket() {}
 Socket::~Socket() {}
 

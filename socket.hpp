@@ -9,5 +9,5 @@ class Socket {
         int host_addrlen;
         Socket();
         ~Socket();
-        int accept_new_connections(int PORT);
+        int accept_new_connections();
 };
