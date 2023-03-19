@@ -1,11 +1,9 @@
 #include "socket.hpp"
 
-#define PORT 7070
-
 Socket::Socket() {}
 Socket::~Socket() {}
 
-int Socket::accept_new_connections() {
+int Socket::accept_new_connections(int PORT) {
     int reuse_addr = 1;  /* Used so we can re-bind to our port
     while a previous connection is still in TIME_WAIT state. */
     host_addrlen = sizeof(host_addr);

@@ -24,7 +24,8 @@ void LocationBlocks::setReturn(std::vector<std::string> str) { Return->assign(st
 
 ServerBlocks::ServerBlocks() : listen(1, "80") {
     std::set<int> s;
-    ErrorPage.insert(std::make_pair(s, "/Errors/404.html"));
+    s.insert(400);
+    ErrorPage.insert(std::make_pair(s, "/Errors/400.html"));
     s.clear(); s.insert(403);
     ErrorPage.insert(std::make_pair(s, "/Errors/403.html"));
     s.clear(); s.insert(404);
@@ -37,6 +38,8 @@ ServerBlocks::ServerBlocks() : listen(1, "80") {
     ErrorPage.insert(std::make_pair(s, "/Errors/413.html"));
     s.clear(); s.insert(414);
     ErrorPage.insert(std::make_pair(s, "/Errors/414.html"));
+    s.clear(); s.insert(500);
+    ErrorPage.insert(std::make_pair(s, "/Errors/500.html"));
     s.clear(); s.insert(501);
     ErrorPage.insert(std::make_pair(s, "/Errors/501.html"));
 }
@@ -197,6 +200,7 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             if (Value.size() != strspn(Value.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
             if (stoi(Value) > 65535 || stoi(Value) <= 0) return std::make_pair(std::make_pair(Store[i-1], Value), 3);
             server.listen.push_back(Value);
+            Ports.insert(stoi(Value));
         }
     } else {
         void (LocationBlocks::*arr[2])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};

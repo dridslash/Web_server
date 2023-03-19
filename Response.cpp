@@ -4,6 +4,7 @@
 #include <math.h>
 
 Response::Response() : StatusCode(0) {
+    Moved = 0;
     std::ifstream myfile("mime.types");
 	std::string key, value;
     if ( myfile.is_open() ) {
@@ -94,11 +95,11 @@ int Response::autoindex(const char *dirpath) {
     return 200;
 }
 
-int Response::GetMethod(Config config) {
+int Response::GetMethod(Config config, std::string OldPath) {
     StatusCode = getResourcePath(config);
     if (StatusCode != 200) return StatusCode;
     if (getResourceType()) { // if it's directory
-        StatusCode = IsURIHasSlashAtTheEnd();
+        StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
         if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->AutoIndex == "on") {
             StatusCode = autoindex(Path.c_str());
@@ -111,35 +112,68 @@ int Response::GetMethod(Config config) {
     return StatusCode;
 }
 
-int Response::PostMethod(Config config) {
-    std::cout << config.MaxBodySize << std::endl;
+int Response::PostMethod(Config config, std::string OldPath) {
+    StatusCode = getResourcePath(config);
+    if (StatusCode != 200) return StatusCode;
+    if (getResourceType()) { // if it's directory
+        StatusCode = IsURIHasSlashAtTheEnd(OldPath);
+        if (StatusCode != 200) return StatusCode;
+        StatusCode = IsDirHaveIndexFiles(config);
+        if (StatusCode != 200) return StatusCode;
+    }
+    if (IfLocationHaveCGI() == 0) return StatusCode;
     return 201;
 }
 
-int Response::DeleteMethod(Config config) {
-    std::cout << config.MaxBodySize << std::endl;
-    // struct stat sb;
-    // int ResourceType = getResourceType(config, Flag);
-    // std::cout << Path << std::endl;
-	// if (ResourceType && ResourceType != 1) return ResourceType;
-    // else if (ResourceType == 1) {
-    //     // if location doesn't have cgi()
-
-    // }
-    // else {
-    //     std::cout << "cdwsx" << std::endl;
-    //     remove(Path.c_str());
-    // }
+int Response::DeleteMethod(Config config, std::string OldPath) {
+    StatusCode = getResourcePath(config);
+    if (StatusCode != 200) return StatusCode;
+    if (getResourceType()) { // if it's directory
+        StatusCode = IsURIHasSlashAtTheEnd(OldPath);
+        if (StatusCode != 200) return StatusCode;
+        if (IfLocationHaveCGI() == 0) {
+            StatusCode = IsDirHaveIndexFiles(config);
+            //CGI JOB
+            if (StatusCode != 200) return StatusCode;
+        }
+        StatusCode = RemoveDirectory(Path.c_str());
+        if (StatusCode != 204) return StatusCode;
+    }
+    if (IfLocationHaveCGI() == 0)
+        remove(Path.c_str());
     return 204;
 }
 
-void Response::StoreCharURI(std::set<char> & CharURI) {
-    char mychars[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
-    'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w' ,'x', 'y',
-    'z', '0', '1', '2', '3', '4', '5' ,'6', '7', '8', '9', '-', '.', '_', '~', ':', '/', '?',
-    '#', '[', ']', '@', '!', '$', '&', 39, '(', ')', '*', '+', ',', ';', '=', '%'};
-    CharURI.insert(mychars, mychars + 84);
+int Response::RemoveDirectory(std::string path) {
+    DIR *dir;
+    struct stat result;
+    struct dirent *entry;
+    dir = opendir(path.c_str());
+    if (dir == NULL) return 403;
+    readdir(dir);
+    readdir(dir);
+    while ((entry = readdir(dir)) != NULL) {
+        if (path.back() != '/') path.append("/");
+        Path = path + entry->d_name;
+        stat(Path.c_str(), &result);
+        if ( entry->d_type == DT_DIR ) {
+            if (rmdir(Path.c_str()) == -1) {
+                StatusCode = RemoveDirectory(Path);
+                if (StatusCode != 204) return StatusCode;
+            }
+        } else {
+            if (remove(Path.c_str()) == -1) {
+                if (access(Path.c_str(), W_OK) == -1) return 403;
+                return 500;
+            }
+        }
+    }
+    Path = Path.substr(0, Path.find_last_of("/") + 1);
+    if (path == Path) {
+        Path = Path.substr(0, Path.find_last_of("/"));
+        if (rmdir(Path.c_str()) == -1) return 500;
+    }
+    return 204;
 }
 
 std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
@@ -169,7 +203,7 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
     if (ServerThatMatchIndex >= 0) {
         for (size_t i = 0; i < config.Servers[ServerThatMatchIndex].Locations.size(); i++) {
             // get the path of location that included in the request URI
-            (config.Servers[ServerThatMatchIndex].Locations[i]->path.back() != '/') ? LocationPath = config.Servers[ServerThatMatchIndex].Locations[i]->path.append(1, '/') : LocationPath = config.Servers[ServerThatMatchIndex].Locations[i]->path;
+            LocationPath = config.Servers[ServerThatMatchIndex].Locations[i]->path;
             if (Path == LocationPath) {
                 LocationsThatMatchTheURI.clear();
                 LocationsThatMatchTheURI.insert(std::make_pair(LocationPath, (int)i));
@@ -189,18 +223,19 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 int Response::getResponsePath(Config config, Request& request) {
     // store all characters allowed in the URI
     LocationIndex = new std::pair<int, int>(-1, -1);
-    Path = request.getPath();
+    if (!Moved)
+        Path = request.getPath();
     HTTPMethod = request.getHTTPMethod();
     HTTPVersion = request.getHTTPVersion();
-    std::set<char> CharURI;
-    StoreCharURI(CharURI);
+    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
     if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
     for (std::string::size_type i = 0; i < Path.size(); i++) {// if request uri contain a character not allowed
-        if (CharURI.find(Path[i]) == CharURI.end())
+        if (CharURI.find(Path[i]) == std::string::npos)
             return 400;
     }
     if (Path.size() > 2048)// if URI contain more than 2048 chars
@@ -214,11 +249,13 @@ int Response::getResponsePath(Config config, Request& request) {
         Path = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->at(1);
         return 301;
     }
-    if (std::find(config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->begin(), config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end(), HTTPMethod) == config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end()) // Method not allowed
+    if (std::find(config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->begin(),
+        config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end(),
+            HTTPMethod) == config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end()) // Method not allowed
         return 405;
     int Method = (HTTPMethod == "GET") * 0 + (HTTPMethod == "POST") * 1 + (HTTPMethod == "DELETE") * 2;
-    int (Response::*arr[3]) ( Config ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
-    StatusCode = (this->*arr[Method])(config);
+    int (Response::*arr[3]) ( Config, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
+    StatusCode = (this->*arr[Method])(config, request.getPath());
     return StatusCode;
 }
 
@@ -262,8 +299,9 @@ int Response::getResourceType() {
     return 0;
 }
 
-int Response::IsURIHasSlashAtTheEnd() {
+int Response::IsURIHasSlashAtTheEnd(std::string OldPath) {
     if (Path.back() != '/') {
+        Path = OldPath;
         Path.append("/");
         if (HTTPMethod == "POST")
             return 409;
@@ -292,39 +330,78 @@ int Response::IsDirHaveIndexFiles(Config config) {
 }
 
 int Response::IfLocationHaveCGI() {
-    return 0;
+    if (HTTPMethod == "GET") return 0;
+    // StatusCode = IsDirHaveIndexFiles(config);
+    // if (StatusCode != 200) return StatusCode;
+    return 1;
 }
 
 void Response::ResponseFile(char **arv, std::string & resp, Config config, Request requestFile) {
+    std::string newresp;
     StatusCode = getResponsePath(config, requestFile);
 	if (StatusCode >= 400)
 		HandleErrorPages(config);
-    std::string newresp;
-
-    resp.append(HTTPVersion + " ");
-    resp.append(std::to_string(StatusCode) + " ");
-    resp.append("OK\n");
-    resp.append("Server: ");
-    resp.append(arv[0]);
-	resp.append("\nContent-Type: ");
-	resp.append(get_content_type(Path.c_str()));
-    resp.append(1, '\n');
-    std::ifstream myfile(Path.c_str());
-    if ( myfile.is_open() ) {
-    	resp.append(1, '\n');
-    	std::getline(myfile, newresp);
-		while ( myfile ) {
-			resp.append(newresp);
-			resp.append(1, '\n');
-			std::getline(myfile, newresp);
-    	}
-	}
+    resp = HTTPVersion;
+    resp.append(" " + std::to_string(StatusCode) + " ");
+    resp.append(getDesc());
+    if (StatusCode == 301)
+        resp.append("Location: " + Path);
+    else {
+        resp.append("Server: ");
+        resp.append(arv[0]);
+        resp.append("\nContent-Type: ");
+        resp.append(getContentType(Path.c_str()));
+        resp.append(1, '\n');
+        std::ifstream myfile(Path.c_str());
+        if ( myfile.is_open() ) {
+            resp.append(1, '\n');
+            std::getline(myfile, newresp);
+            while ( myfile ) {
+                resp.append(newresp);
+                resp.append(1, '\n');
+                std::getline(myfile, newresp);
+            }
+        }
+    }
+    std::cout << resp << std::endl;
 }
 
-std::string Response::get_content_type(const char* resp) {
+std::string Response::getContentType(const char* resp) {
 	std::string Default = "application/octet-stream";
 	std::map<std::string, std::string>::iterator formula = ContentTypes.find(strrchr(resp, '.'));
 	if (formula != ContentTypes.end())
 		return formula->second;
 	return Default;
+}
+
+std::string Response::getDesc() {
+    switch (StatusCode) {
+        case 200:
+            return "OK\n";
+        case 201:
+            return "Created\n";
+        case 204:
+            return "No Content\n";
+        case 301:
+            return "Moved Permanently\n";
+        case 400:
+            return "Bad Request\n";
+        case 403:
+            return "Forbidden\n";
+        case 404:
+            return "Not Found\n";
+        case 405:
+            return "Method Not Allowed\n";
+        case 409:
+            return "Conflict\n";
+        case 413:
+            return "Content Too Large\n";
+        case 414:
+            return "URI Too Long\n";
+        case 500:
+            return "Internal Server Error\n";
+        case 501:
+            return "Not Implemented\n";
+    }
+    return NULL;
 }

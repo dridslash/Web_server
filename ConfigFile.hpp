@@ -40,6 +40,7 @@ class Config {
     public:
         typedef std::pair<std::pair<std::string, std::string>, int> ErrorBox;
         Config();
+        std::set<int>               Ports;
         std::string                 MaxBodySize;
         std::vector<ServerBlocks>   Servers;
         std::set<std::string>       Directives;

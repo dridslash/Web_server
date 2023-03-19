@@ -44,13 +44,14 @@ int main(int arc, char **arv) {
 						FD_SET(connection, &master);
 						if (connection > maxfd)
 							maxfd = connection;
-						std::string Host = "localhost";
-						std::string Port = "7070";
-						ResponsePath.setHost(Host);
-						ResponsePath.setPort(Port);
 					}
 				}
 				else {
+					std::cout << "Try to Read" << std::endl;
+					std::string Host = "localhost";
+					std::string Port = "7070";
+					ResponsePath.setHost(Host);
+					ResponsePath.setPort(Port);
 					setnonblocking(i);
 					int bytesIn = recv(i, buffer, BUFFER_SIZE, 0);
 					if (bytesIn <= 0) {
@@ -58,6 +59,7 @@ int main(int arc, char **arv) {
 						close(i);
 					}
 					else {
+						std::cout << "Reading Completed" << std::endl;
 						std::string str(buffer);
 						requestFile.RequestParse(str);
 						ResponsePath.ResponseFile(arv, resp, config, requestFile);

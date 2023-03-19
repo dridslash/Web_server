@@ -14,6 +14,7 @@ class Response {
         std::string Port;
         std::pair<int, int>* LocationIndex;
         std::map<std::string, std::string> ContentTypes;
+        int Moved;
     public:
         Response();
         ~Response();
@@ -26,19 +27,21 @@ class Response {
         void setHost(std::string);
         void setPort(std::string);
         void setStatusCode(int);
-        void StoreCharURI(std::set<char> & );
         int getResponsePath(Config, Request&);
         std::pair<int, int> getLocationBlockOfTheRequest(Config);
         int getResourcePath(Config);
-        int GetMethod(Config);
-        int PostMethod(Config);
-        int DeleteMethod(Config);
+        int GetMethod(Config, std::string);
+        int PostMethod(Config, std::string);
+        int DeleteMethod(Config, std::string);
         int autoindex(const char *);
         int HandleErrorPages(Config );
         int getResourceType();
-        int IsURIHasSlashAtTheEnd();
+        int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI();
         void ResponseFile(char **, std::string &, Config, Request);
-        std::string get_content_type(const char*);
+        std::string getContentType(const char*);
+        int RemoveDirectory(std::string);
+        std::string getDesc();
+
 };
