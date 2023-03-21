@@ -6,18 +6,27 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/17 11:02:17 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/21 16:55:36 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.hpp"
-#include "Client.hpp"
+// #include "Client.hpp"
 
 #define PORT 80
 #define backlog 20
+#define max_events 1000
 #define BUFFER_SIZE 1024
 // #define MICRO_PORTION 1000000
 
+
+int kq = kqueue();
+
+void add_event(int fd , int filter){
+    struct kevent events[1];
+    EV_SET(&events[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
+    kevent(kq,events,1,NULL,0,NULL);
+}
 
 //------------------------POLL_FUNCTIONS-----------------------------
 
@@ -38,10 +47,13 @@
 //     hpfds[i].fd = -1;
 // }
 
+// void ADD_EVENT(int fd , int filter, int flags){
+//     struct kevent Take_Eevent;
+// }
+
 //-----------------------------------------------------
 
 int main(){
-    
     char buffer[BUFFER_SIZE];
 
     int reuse = 1;
@@ -92,7 +104,6 @@ int main(){
 
     std::cout << "Server listening\n";
     
-
     //r- ---------SELECT--------------
     
     // fd_set read_fds;
@@ -214,20 +225,18 @@ int main(){
     //y- ----------------------------------------------------------
 
     //b- /////////////////////////////---KQUEUE---------/////////////////////
-    
-    int kq = kqueue();
-    assert(kq > 0);
-    struct kevent event_set;
-    // struct kevent events[10];
-    EV_SET(&event_set,server_socket,EVFILT_READ,EV_ADD | EV_CLEAR, 0 ,0 ,0);
-    assert(kevent(kq,&event_set,1,NULL,0, NULL) == 0);
-    int n__events = 0;
-    while(true){
-        int n__events = kevent(kq,NULL,0,&event_set,100, NULL);
-
-        for(int i = 0 ; i < n__events ; i++){
-            if (event_set.flags & EVFILT_READ){
-                if (event_set.ident == server_socket){
+    add_event(server_socket, EVFILT_READ | EVFILT_WRITE);
+    struct kevent evv[max_events];
+    for(;;){
+        int n_ev = kevent(kq,NULL,0,evv,max_events,NULL);
+        if (n_ev < 0){
+            perror("kevent");
+        }
+        for(int i = 0; i < n_ev; i++){
+            int fd = static_cast<int>(evv[i].ident);
+                if (evv[i].filter == EVFILT_READ){
+                    if (fd == server_socket){
+                // ACCPET CONNECTION
                 int client_socket = accept(server_socket,reinterpret_cast<struct sockaddr*>(&host_addd),
                             reinterpret_cast<socklen_t*>(&host_addlen));
     
@@ -235,26 +244,51 @@ int main(){
                     std::cout << "Error in accepting socket\n";
                     close(client_socket); 
                 }
-                // if (recv(client_socket,buffer,BUFFER_SIZE,0) <= 0){
-                //     close(client_socket);
-                // }
-                // std::cout << buffer << std::endl;
+                add_event(client_socket , EVFILT_READ);
+                add_event(client_socket , EVFILT_WRITE);
                 std::cout << "Connetion made"<<std::endl;
-                EV_SET(&event_set,client_socket,EVFILT_READ,EV_ADD | EV_CLEAR, 0 ,0 ,0);
-                assert(kevent(kq,&event_set,1,NULL,0, NULL) == 0);
                 std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
                 "<header>Welcome to the server</header>\r\n");
                 send(client_socket,wel.c_str(),wel.size() + 1,0);
+                }
+                else {
+                     if (recv(fd,buffer,BUFFER_SIZE,0) <= 0){
+                        perror("recv");
+                        close(i);
                     }
-                    else{
-                     if (recv(i,buffer,BUFFER_SIZE,0) <= 0){
-                    close(i);
-                    }
+                    std::cout << buffer << std::endl;
                 }
             }
         }
     }
-    close(kq);
+        
+    
+
+    // if (errno == EINTR){
+    //     std::cout << "signal\n";
+    //     return (0);
+    // }
+    
 
     //b- ////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 }

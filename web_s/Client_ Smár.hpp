@@ -1,24 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
+/*   Client_ Smár.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/11 10:21:09 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/16 12:02:49 by mnaqqad          ###   ########.fr       */
+/*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
+/*   Updated: 2023/03/21 17:01:02 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "header.hpp"
 
-class Server{
-    explicit Server(int socket);
-    int ServerScoket;
-    // struct sockaddr_in Server_Address;
-    // socklen_t server_address_len;
+class Client_Smár{
 
-    void ready_up_connection(Server & serv);
 };
