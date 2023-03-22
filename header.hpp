@@ -20,5 +20,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <libgen.h>
+#include <limits.h>
 
 #define BUFFER_SIZE 1024

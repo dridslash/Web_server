@@ -2,6 +2,8 @@
 #include "Request.hpp"
 #include "ConfigFile.hpp"
 #include <math.h>
+#include <cstdlib>
+
 
 Response::Response() : StatusCode(0) {
     Moved = 0;
@@ -108,7 +110,7 @@ int Response::GetMethod(Config config, std::string OldPath) {
         StatusCode = IsDirHaveIndexFiles(config);
         if (StatusCode != 200) return StatusCode;
     }
-    if (IfLocationHaveCGI() == 0) return StatusCode;
+    if (IfLocationHaveCGI(config) == 0) return StatusCode;
     return StatusCode;
 }
 
@@ -121,7 +123,7 @@ int Response::PostMethod(Config config, std::string OldPath) {
         StatusCode = IsDirHaveIndexFiles(config);
         if (StatusCode != 200) return StatusCode;
     }
-    if (IfLocationHaveCGI() == 0) return StatusCode;
+    if (IfLocationHaveCGI(config) == 0) return StatusCode;
     return 201;
 }
 
@@ -131,7 +133,7 @@ int Response::DeleteMethod(Config config, std::string OldPath) {
     if (getResourceType()) { // if it's directory
         StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
-        if (IfLocationHaveCGI() == 0) {
+        if (IfLocationHaveCGI(config) == 0) {
             StatusCode = IsDirHaveIndexFiles(config);
             //CGI JOB
             if (StatusCode != 200) return StatusCode;
@@ -139,7 +141,7 @@ int Response::DeleteMethod(Config config, std::string OldPath) {
         StatusCode = RemoveDirectory(Path.c_str());
         if (StatusCode != 204) return StatusCode;
     }
-    if (IfLocationHaveCGI() == 0)
+    if (IfLocationHaveCGI(config) == 0)
         remove(Path.c_str());
     return 204;
 }
@@ -211,6 +213,7 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
             }
             if (Path.find(LocationPath) != std::string::npos)
                 LocationsThatMatchTheURI.insert(std::make_pair(LocationPath, i));
+
         }
         if (LocationsThatMatchTheURI.size() > 0) {
             std::map<std::string, int>::iterator it = --LocationsThatMatchTheURI.end();
@@ -224,9 +227,11 @@ int Response::getResponsePath(Config config, Request& request) {
     // store all characters allowed in the URI
     LocationIndex = new std::pair<int, int>(-1, -1);
     if (!Moved)
-        Path = request.getPath();
+    Path = request.getPath();
     HTTPMethod = request.getHTTPMethod();
     HTTPVersion = request.getHTTPVersion();
+    Body = request.getBody();
+    RequestHeader = request.getRequestHeader();
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
@@ -329,10 +334,39 @@ int Response::IsDirHaveIndexFiles(Config config) {
     return 403;
 }
 
-int Response::IfLocationHaveCGI() {
-    if (HTTPMethod == "GET") return 0;
-    // StatusCode = IsDirHaveIndexFiles(config);
-    // if (StatusCode != 200) return StatusCode;
+int Response::IfLocationHaveCGI(Config config) {
+    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI.size() == 0) return 0;
+    char PATH_INFO[PATH_MAX];
+    char* res = realpath(Path.c_str(), PATH_INFO);
+    if (!res) {
+        perror("realpath");
+        exit(EXIT_FAILURE);
+    }
+    std::ofstream f("public/cgiOutput.html");
+    int fd[2];
+    pipe(fd);
+    pid_t c_pid = fork();
+    if (c_pid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    else if (c_pid == 0) {
+        dup2(fd[1], 1);
+        close(fd[0]);
+        setenv("QUERY_STRING", Body.c_str(), 0);
+        extern char** environ;
+        execve(PATH_INFO, NULL, environ);
+        perror("execve");
+        exit(EXIT_FAILURE);
+    }
+    char buffer[2049];
+    int r = read(fd[0], buffer, 2048);
+    buffer[r] = '\0';
+    close(fd[1]);
+    f << buffer;
+    Path = "public/cgiOutput.html";
+    close(fd[0]);
+    StatusCode = 200;
     return 1;
 }
 
@@ -363,7 +397,7 @@ void Response::ResponseFile(char **arv, std::string & resp, Config config, Reque
             }
         }
     }
-    std::cout << resp << std::endl;
+    // std::cout << resp << std::endl;
 }
 
 std::string Response::getContentType(const char* resp) {

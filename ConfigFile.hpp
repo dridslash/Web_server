@@ -13,7 +13,9 @@ class LocationBlocks {
     std::vector<std::string>*   index;
     std::vector<std::string>*   try_files;
     std::vector<std::string>*   Return;
+    std::string                 CGI;
     void setAutoIndex(std::string);
+    void setCGI(std::string);
     void setRoot(std::string);
     void setMethods(std::vector<std::string>);
     void setIndex(std::vector<std::string>);

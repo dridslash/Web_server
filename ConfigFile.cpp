@@ -15,6 +15,7 @@ LocationBlocks::LocationBlocks() : AutoIndex("off") {
 // }
 
 void LocationBlocks::setAutoIndex(std::string str) { AutoIndex = str; }
+void LocationBlocks::setCGI(std::string str) { CGI = str; }
 void LocationBlocks::setRoot(std::string str) { root = str; }
 void LocationBlocks::setMethods(std::vector<std::string> str) { httpmethods->assign(str.begin(), str.end()); }
 void LocationBlocks::setIndex(std::vector<std::string> str) { index->assign(str.begin(), str.end()); }
@@ -97,7 +98,7 @@ Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlock
         if (Store[i] == "try_files" || Store[i] == "httpmethods" || Store[i] == "return" || Store[i] == "index") {
             r = DirectivesMoreThanOneValue(location, server, Store, i, 1);
             if (r.second) return r;
-        } else if (Store[i] == "root" || Store[i] == "autoindex") {
+        } else if (Store[i] == "cgi_param" || Store[i] == "root" || Store[i] == "autoindex") {
             r = DirectivesOneValue(location, server, Store, i, 1);
             if (r.second) return r;
         }
@@ -203,9 +204,9 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             Ports.insert(stoi(Value));
         }
     } else {
-        void (LocationBlocks::*arr[2])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};
-        int Dir = (Store[i-1] == "root") * 0 + (Store[i-1] == "autoindex") * 1;
-        if (Dir && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
+        void (LocationBlocks::*arr[3])( std::string ) = {&LocationBlocks::setCGI, &LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};
+        int Dir = (Store[i-1] == "cgi_param") * 0 + (Store[i-1] == "root") * 1 + (Store[i-1] == "autoindex") * 2;
+        if (Dir == 2 && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
         (location->*arr[Dir])(Value);
     }
     if (IstillHave.length() == 0) i++;

@@ -38,7 +38,7 @@ class Response {
         int getResourceType();
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
-        int IfLocationHaveCGI();
+        int IfLocationHaveCGI(Config config);
         void ResponseFile(char **, std::string &, Config, Request);
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);

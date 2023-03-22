@@ -13,9 +13,15 @@ std::string Request::getHTTPMethod() const {
 std::string Request::getPath() const {
     return Path;
 }
+std::string Request::getBody() const {
+    return Body;
+}
 
 std::string Request::getHTTPVersion() const {
     return HTTPVersion;
+}
+std::map<std::string, std::string> Request::getRequestHeader() const {
+    return RequestMap;
 }
 
 void Request::RequestParse(std::string s) {
@@ -34,5 +40,10 @@ void Request::RequestParse(std::string s) {
         s = s.substr(s.find(NEWLINE) + 1);
         Line = s.substr(0, s.find(NEWLINE));
     }
+    s = s.substr(s.find(NEWLINE) + 1);
     if (s.length()) Body = s;
+    if (HTTPMethod == "GET" && Path.find("?") != std::string::npos) {
+        Body = Path.substr(Path.find("?") + 1);
+        Path = Path.substr(0, Path.find("?"));
+    }
 }

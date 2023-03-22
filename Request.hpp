@@ -14,6 +14,8 @@ class Request {
         std::map<std::string, std::string> RequestMap;
         std::string getHTTPMethod() const;
         std::string getPath() const;
+        std::string getBody() const;
         std::string getHTTPVersion() const;
+        std::map<std::string, std::string> getRequestHeader() const;
         void RequestParse(std::string);
 };

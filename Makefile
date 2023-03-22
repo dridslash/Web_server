@@ -2,7 +2,7 @@ NAME    =	Webserv
 
 SRC    =	main.cpp socket.cpp Request.cpp Response.cpp ConfigFile.cpp
 
-GCC		=	c++ -Wall -Wextra -Werror -std=c++98
+GCC		=	c++ #-Wall -Wextra -Werror -std=c++98
 
 all: $(NAME)
 $(NAME):   $(SC_VEC)
