@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server_Eyjafjörður.hpp                             :+:      :+:    :+:   */
+/*   Gymir.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/23 17:24:32 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/23 18:13:02 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,17 @@
 #include <deque>
 #include "header.hpp"
 #include "ConfigFile.hpp"
+#include "Server_Eyjafjörður.hpp"
 
-class Server_Eyjafjörður{
+class Gymir{
     public:
-        struct addrinfo hints , *servinfo;
-        Server_Eyjafjörður();
-        Server_Eyjafjörður(int sk,const char *port);
-        int Set_up_Server(const char *port);
+        Gymir();
+        Gymir(const std::vector<Server_Eyjafjörður>& fill_servers);
+        int Get_Ports();
+        int Upping_Eyjafjörðurs(char *Config_file);
+        void Apply_Servers(int number_of_ports,const char *port);
     private:
-        static int reuse;
-        int Server_Socket;
-        const char *PORT;
-        // std::deuque<>
-        // int Status_Code;
+        std::vector<Server_Eyjafjörður>Servers;
+        
         
 };

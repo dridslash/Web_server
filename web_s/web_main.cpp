@@ -6,13 +6,14 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/23 12:47:04 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/23 17:40:08 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 // #include "Client.hpp"
 #include "Server_Eyjafjörður.hpp"
 #include "Client_Smár.hpp"
+#include "Gymir.hpp"
 
 #define PORT 80
 #define backlog 20
@@ -29,78 +30,62 @@ void add_event(int fd , int filter){
     kevent(kq,events,1,NULL,0,NULL);
 }
 
-//------------------------POLL_FUNCTIONS-----------------------------
+int main(int ac, char **argv){
 
-// void insert_pfd(struct pollfd *hpfds, int new_socket_fd , int &count_fds , int &size_fds){
-//     if (count_fds == size_fds){
-//         size_fds *= 2;
-//         hpfds = static_cast<pollfd*>(realloc(hpfds, sizeof(pollfd) * size_fds));
-//     }
+    Gymir All_server;
 
-//     hpfds[count_fds].fd = new_socket_fd;
-//     hpfds[count_fds].events = POLLIN;
+    All_server.Upping_Eyjafjörðurs(argv[1]);
 
-//     count_fds++;
+    // Server_Eyjafjörður srv ;
+
+    // srv.Set_up_Server("7070");
     
-// }
+    // char buffer[BUFFER_SIZE];
 
-// void erase_pfd(struct pollfd *hpfds, int i){
-//     hpfds[i].fd = -1;
-// }
-
-// void ADD_EVENT(int fd , int filter, int flags){
-//     struct kevent Take_Eevent;
-// }
-
-//-----------------------------------------------------
-
-int main(){
-    char buffer[BUFFER_SIZE];
-
-    int reuse = 1;
+    // int reuse = 1;
     
-    //response message
-    std::string response ("HTTP/1.1 200 OK\r\n"
-                        "Server: webserver-c\r\n"
-                        "Content-type: text/html\r\n\r\n"
-                        "<html>im the server here is you response</html>\r\n");
+    // //response message
+    // std::string response ("HTTP/1.1 200 OK\r\n"
+    //                     "Server: webserver-c\r\n"
+    //                     "Content-type: text/html\r\n\r\n"
+    //                     "<html>im the server here is you response</html>\r\n");
 
-                        std::string msg_from_client ("HTTP/1.1 200 OK\r\n"
-                        "Server: webserver-c\r\n"
-                        "Content-type: text/html\r\n\r\n"
-                        "<html>im the client here is you response</html>\r\n");
+    //                     std::string msg_from_client ("HTTP/1.1 200 OK\r\n"
+    //                     "Server: webserver-c\r\n"
+    //                     "Content-type: text/html\r\n\r\n"
+    //                     "<html>im the client here is you response</html>\r\n");
 
-    //////----connection and binding ------------////
-    struct addrinfo hints , *servinfo;
+    // //////----connection and binding ------------////
+    // struct addrinfo hints , *servinfo;
 
-    memset(&hints, 0, sizeof(hints));
+    // memset(&hints, 0, sizeof(hints));
     
-    // hints.ai_family = AF_UNSPEC;
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    // // hints.ai_family = AF_UNSPEC;
+    // hints.ai_family = AF_INET;
+    // hints.ai_socktype = SOCK_STREAM;
+    // hints.ai_flags = AI_PASSIVE;
 
-    const char *port = "8080";
-    int get_add_errno = 0;
-    if ((get_add_errno = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
-        std::cerr << (get_add_errno) << std::endl;
-    }
-    char hold_ip[INET_ADDRSTRLEN];
-    // inet_ntop(server_struct->sin_family,&(server_struct->sin_addr),hold_ip,sizeof(hold_ip));
-    int server_socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol);
-    if (setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
-        perror("Setsockopt Error");
-        exit(EXIT_FAILURE);
-    }
-    if (bind(server_socket,(struct sockaddr*)servinfo->ai_addr,servinfo->ai_addrlen) < 0){
-        perror("Bind Error");
-        exit(EXIT_FAILURE);
-    }
-    std::cout << "IP Bound" << std::endl;
-    if (listen(server_socket,SOMAXCONN) < 0){
-        perror("Listen Error");
-        exit(EXIT_FAILURE);
-    }
-    std::cout << "Server up and listening..." << std::endl;
-    recv(server_socket,buffer,BUFFER_SIZE,0);
+    // const char *port = "8080";
+    // int get_add_errno = 0;
+    // if ((get_add_errno = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
+    //     std::cerr << (get_add_errno) << std::endl;
+    // }
+    // char hold_ip[INET_ADDRSTRLEN];
+    // // inet_ntop(server_struct->sin_family,&(server_struct->sin_addr),hold_ip,sizeof(hold_ip));
+    // int server_socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol);
+    // if (setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
+    //     perror("Setsockopt Error");
+    //     exit(EXIT_FAILURE);
+    // }
+    // if (bind(server_socket,(struct sockaddr*)servinfo->ai_addr,servinfo->ai_addrlen) < 0){
+    //     perror("Bind Error");
+    //     exit(EXIT_FAILURE);
+    // }
+    // std::cout << "IP Bound" << std::endl;
+    // if (listen(server_socket,SOMAXCONN) < 0){
+    //     perror("Listen Error");
+    //     exit(EXIT_FAILURE);
+    // }
+    // std::cout << "Server up and listening..." << std::endl;
+    // recv(server_socket,buffer,BUFFER_SIZE,0);
 }
