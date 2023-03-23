@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/23 18:11:22 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/23 18:30:42 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,9 @@ int Server_Eyjafjörður::Set_up_Server(const char *port){
         std::cerr << (get_add_errno) << std::endl;
     }
     // char hold_ip[INET_ADDRSTRLEN];
-    // inet_ntop(server_struct->sin_family,&(server_struct->sin_addr),hold_ip,sizeof(hold_ip));
+    // struct sockaddr_in *j = (struct sockaddr_in*)servinfo->ai_addr;
+    // inet_ntop(servinfo->ai_family,&(j->sin_addr),hold_ip,sizeof(hold_ip));
+    // std::cout << hold_ip << std::endl;
     Server_Socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol);
     if (setsockopt(Server_Socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
         perror("Setsockopt Error");

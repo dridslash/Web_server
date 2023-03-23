@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/23 17:40:08 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/23 18:25:37 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,17 +32,9 @@ void add_event(int fd , int filter){
 
 int main(int ac, char **argv){
 
-    Gymir All_server;
+    Gymir All_servers;
 
-    All_server.Upping_Eyjafjörðurs(argv[1]);
-
-    // Server_Eyjafjörður srv ;
-
-    // srv.Set_up_Server("7070");
-    
-    // char buffer[BUFFER_SIZE];
-
-    // int reuse = 1;
+    All_servers.Upping_Eyjafjörðurs(argv[1]);
     
     // //response message
     // std::string response ("HTTP/1.1 200 OK\r\n"
