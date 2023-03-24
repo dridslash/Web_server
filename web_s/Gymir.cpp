@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/24 17:55:58 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/24 17:59:07 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,4 @@ int Gymir::multiplexing(std::vector<Server_Eyjafjörður>& Serv_All){
             }
         }
     }
-
-  
 }

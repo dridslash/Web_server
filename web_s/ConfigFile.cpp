@@ -251,7 +251,7 @@ int    Config::ConfigParse(char *ConfigPath) {
     while ( ConfigFile ) { 
         ss << Line;
         size_t found = Line.find_first_not_of(" \t");
-        if (Line[found] != '#') {
+        if (found < Line.size() && Line[found] != '#') {
             resp.append(Line);
 		    resp.append(1, '\n');
         }
