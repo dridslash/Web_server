@@ -25,5 +25,13 @@
 #include <sys/event.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <deque>
+#include <map>
+
 
 #define BUFFER_SIZE 1024
+#define MAX_CONNECTIONS 200
+
+
+#define Dvergmál(a) std::cout << a << std::endl
+#define CLOSING_SOCKET(s) close(s)
