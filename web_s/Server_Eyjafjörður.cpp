@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/24 17:22:38 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/25 15:59:11 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,14 @@ int Server_Eyjafjörður::kq = kqueue();
 int Server_Eyjafjörður::reuse = 1;
 
 //------------------------------------------
+
+//--------------STATIC_METHODES------------
+
+Server_Eyjafjörður* Server_Eyjafjörður::Draupnir(){
+    return (new Server_Eyjafjörður());
+}
+
+//-----------------------------------------
 
 Server_Eyjafjörður::Server_Eyjafjörður(){}
 
@@ -49,11 +57,6 @@ int Server_Eyjafjörður::Set_up_Server(const char *port){
     if ((get_add_errno = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
         std::cerr << (get_add_errno) << std::endl;
     }
-    
-    // char hold_ip[INET_ADDRSTRLEN];
-    // struct sockaddr_in *j = (struct sockaddr_in*)servinfo->ai_addr;
-    // inet_ntop(servinfo->ai_family,&(j->sin_addr),hold_ip,sizeof(hold_ip));
-    // std::cout << hold_ip << std::endl;
     Server_Socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol);
     if (setsockopt(Server_Socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
         perror("Setsockopt Error");
@@ -67,7 +70,7 @@ int Server_Eyjafjörður::Set_up_Server(const char *port){
         exit(EXIT_FAILURE);
     }
     
-    // freeaddrinfo(servinfo);
+    freeaddrinfo(servinfo);
     
     Dvergmál("IP Bound");
     
@@ -79,6 +82,7 @@ int Server_Eyjafjörður::Set_up_Server(const char *port){
     Dvergmál("Server up and listening...");
 
     Add_Event_to_queue_ker(Server_Socket,EVFILT_READ);
+    Add_Event_to_queue_ker(Server_Socket,EVFILT_WRITE);
 
     return (0);
 }
@@ -93,4 +97,21 @@ bool Server_Eyjafjörður::Add_Event_to_queue_ker(int &fd , int filter){
     kevent(kq,event,1,NULL,0,NULL);
     return (true);
 }
+
 // bool Delete_Event_to_queue_ker(int &fd , int filter);
+
+void Server_Eyjafjörður::Print_Connection_Info(){
+    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
+        if (it->second){
+        std::cout << it->second->Client_Ip_Port_Connected.first << ":" << it->second->Client_Ip_Port_Connected.second << std::endl;
+        }
+    }
+}
+
+void Server_Eyjafjörður::Add_Client(int &fd){
+    Client_Smár *client_copy = Client_Smár::Draupnir_Smár(fd);
+    Add_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
+    Add_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
+    client_copy->Set_up_ip_port();
+    Clients.insert(std::make_pair(client_copy->Client_Socket,client_copy));
+}

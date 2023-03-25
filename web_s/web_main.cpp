@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/24 17:22:49 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/25 08:06:02 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,6 @@
 #define max_events 1000
 #define BUFFER_SIZE 1024
 // #define MICRO_PORTION 1000000
-
-
-int kq = kqueue();
-
-void add_event(int fd , int filter){
-    struct kevent events[1];
-    EV_SET(&events[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
-    kevent(kq,events,1,NULL,0,NULL);
-}
-
 int main(int ac, char **argv){
 
     Gymir All_servers;

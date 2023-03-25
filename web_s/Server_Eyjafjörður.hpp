@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/24 17:50:34 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/25 15:09:22 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,10 @@ class Server_Eyjafjörður{
         int Set_up_Server(const char *port);
         void Change_Socket_To_Non_Block(int &fd);
         int Get_Server_Socket()const;
-        std::map<int,Client_Smár>Clients;
+        void Print_Connection_Info();
+        static Server_Eyjafjörður* Draupnir();
+        void Add_Client(int &fd);
+        std::map<int,Client_Smár*>Clients;
     private:
         static int reuse;
         int Server_Socket;

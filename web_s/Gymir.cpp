@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/24 17:59:07 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/25 16:06:18 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,13 @@ Config Gymir::conf;
 
 Gymir::Gymir(){}
 
-Gymir::Gymir(const std::vector<Server_Eyjafjörður>& fill_servers):Servers(fill_servers){}
+Gymir::Gymir(const std::vector<Server_Eyjafjörður*>& fill_servers):Servers(fill_servers){}
 
 Gymir::~Gymir(){}
 
 void Gymir::Create_Servers_Acc_Port(int number_of_ports, const char *port){
-        Server_Eyjafjörður Serv;
-        Serv.Set_up_Server(port);
+        Server_Eyjafjörður *Serv = Server_Eyjafjörður::Draupnir();
+        Serv->Set_up_Server(port);
         Servers.push_back(Serv);
 }
 
@@ -38,15 +38,15 @@ int Gymir::Upping_Eyjafjörðurs(char *Config_file){
     return (0);
 }
 
-Server_Eyjafjörður* Gymir::Search_in_Servers(int fd,std::vector<Server_Eyjafjörður>& Serv_All){
+Server_Eyjafjörður* Gymir::Search_in_Servers(int fd,std::vector<Server_Eyjafjörður*>& Serv_All){
     for(std::vector<Server_Eyjafjörður>::size_type i = 0;i < Serv_All.size(); i++){
-        if (fd == Serv_All.at(i).Get_Server_Socket())
-            return (&(Serv_All.at(i)));
+        if (fd == Serv_All.at(i)->Get_Server_Socket())
+            return (Serv_All.at(i));
     }
     return (NULL);
 }
 
-int Gymir::multiplexing(std::vector<Server_Eyjafjörður>& Serv_All){
+int Gymir::multiplexing(std::vector<Server_Eyjafjörður*>& Serv_All){
     // std::string response ("HTTP/1.1 200 OK\r\n"
     //                     "Server: webserver-c\r\n"
     //                     "Content-type: text/html\r\n\r\n"
@@ -56,10 +56,12 @@ int Gymir::multiplexing(std::vector<Server_Eyjafjörður>& Serv_All){
     //                     "Server: webserver-c\r\n"
     //                     "Content-type: text/html\r\n\r\n"
     //                     "<html>im the client here is you response</html>\r\n");
-
+    std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
+                "<header>Welcome to the server</header>\r\n");
     char buffer[BUFFER_SIZE];
+    char k[20];
     struct kevent retrieved_events[MAX_CONNECTIONS];
-    
+    int client_socket;
     for(;;){
         int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
         if (n_ev < 0){
@@ -67,36 +69,25 @@ int Gymir::multiplexing(std::vector<Server_Eyjafjörður>& Serv_All){
         }
         for(int i = 0; i < n_ev; i++){
             int fd = static_cast<int>(retrieved_events[i].ident);
+            
             Server_Eyjafjörður* copy_server = Search_in_Servers(fd,Serv_All);
-            Dvergmál(copy_server->PORT);
                 if (retrieved_events[i].filter == EVFILT_READ){
                     if (copy_server && fd == copy_server->Get_Server_Socket()){
                 // ACCPET CONNECTION
-                int client_socket = accept(copy_server->Get_Server_Socket(),reinterpret_cast<struct sockaddr*>(&copy_server->servinfo->ai_addr),
+                client_socket = accept(copy_server->Get_Server_Socket(),reinterpret_cast<struct sockaddr*>(&copy_server->servinfo->ai_addr),
                             reinterpret_cast<socklen_t*>(&copy_server->servinfo->ai_addrlen));
                 
-                Client_Smár client_copy(client_socket);
-                copy_server->Add_Event_to_queue_ker(client_copy.Client_Socket,EVFILT_READ);
-                // add_event(clien , EVFILT_READ);
-                // add_event(client_socket , EVFILT_WRITE);
-                copy_server->Clients.insert(std::make_pair(client_copy.Client_Socket,client_copy));
+                copy_server->Add_Client(client_socket);
                 if (client_socket < 0){
                     std::cout << "Error in accepting socket\n";
-                    close(client_socket); 
+                    CLOSING_SOCKET(client_socket);
                 }
+
                 std::cout << "Connetion made"<<std::endl;
-                std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
-                "<header>Welcome to the server</header>\r\n");
-                send((*(copy_server->Clients.find(client_copy.Client_Socket))).first,wel.c_str(),wel.size() + 1,0);
+                
+                // send((*(copy_server->Clients.find(client_socket))).first,wel.c_str(),wel.size() + 1,0);
                 }
-                else {
-                     if (recv(fd,buffer,BUFFER_SIZE,0) <= 0){
-                        perror("recv");
-                        close(i);
-                    }
-                    std::cout << buffer << std::endl;
-                }
-            }
+             }
         }
     }
 }
