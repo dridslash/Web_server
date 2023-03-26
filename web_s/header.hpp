@@ -27,6 +27,11 @@
 #include <sys/ioctl.h>
 #include <deque>
 #include <map>
+#include <array>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <libgen.h>
+#include <limits.h>
 
 
 #define BUFFER_SIZE 1024

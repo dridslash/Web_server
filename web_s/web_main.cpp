@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/25 08:06:02 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/26 13:26:57 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,14 @@
 // #define MICRO_PORTION 1000000
 int main(int ac, char **argv){
 
-    Gymir All_servers;
+    Server_Eyjafjörður Main_server;
 
-    All_servers.Upping_Eyjafjörðurs(argv[1]);
+    Main_server.Upp_ports(argv[1]);
+    Main_server.multiplexing();
+
+    // Gymir All_servers;
+
+    // All_servers.Upping_Eyjafjörðurs(argv[1]);
     
     // //response message
     // std::string response ("HTTP/1.1 200 OK\r\n"
