@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 function bcode_error($m)
 {
 	echo "<div class='error'>{$m}</div>";

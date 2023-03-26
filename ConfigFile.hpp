@@ -13,10 +13,10 @@ class LocationBlocks {
     std::vector<std::string>*   index;
     std::vector<std::string>*   try_files;
     std::vector<std::string>*   Return;
-    std::string                 CGI;
+    std::map<std::string, std::string>*   CGI;
     void setAutoIndex(std::string);
-    void setCGI(std::string);
     void setRoot(std::string);
+    void setCGI(std::pair<std::string, std::string>);
     void setMethods(std::vector<std::string>);
     void setIndex(std::vector<std::string>);
     void setTryFiles(std::vector<std::string>);

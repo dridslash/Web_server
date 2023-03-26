@@ -220,20 +220,19 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
             return std::make_pair(ServerThatMatchIndex, it->second);
         }
     }
+
     return std::make_pair(-1, -1);
 }
 
 int Response::getResponsePath(Config config, Request& request) {
-    // store all characters allowed in the URI
     LocationIndex = new std::pair<int, int>(-1, -1);
-    if (!Moved)
     Path = request.getPath();
     HTTPMethod = request.getHTTPMethod();
     HTTPVersion = request.getHTTPVersion();
-    Body = request.getBody();
+    QueryString = request.getQueryString();
     RequestHeader = request.getRequestHeader();
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
-    
+
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
@@ -245,7 +244,10 @@ int Response::getResponsePath(Config config, Request& request) {
     }
     if (Path.size() > 2048)// if URI contain more than 2048 chars
         return 414;
-    if ((int)Body.size() > stoi(config.MaxBodySize))// Request Body too large
+    std::ifstream in_file("Body.txt");
+    in_file.seekg(0, std::ios::end);
+    int file_size = in_file.tellg();
+    if (file_size > stoi(config.MaxBodySize))// Request Body too large
         return 413;
     LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(config));
     if (LocationIndex->first == -1) // Location not found (Client Error)
@@ -335,14 +337,26 @@ int Response::IsDirHaveIndexFiles(Config config) {
 }
 
 int Response::IfLocationHaveCGI(Config config) {
-    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI.size() == 0) return 0;
-    char PATH_INFO[PATH_MAX];
-    char* res = realpath(Path.c_str(), PATH_INFO);
-    if (!res) {
-        perror("realpath");
-        exit(EXIT_FAILURE);
-    }
+    // char PATH_INFO[PATH_MAX];
+    // std::string PathInfo;
+    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->size() == 0) return 0;
+    // if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("php") != config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->end()
+    //     && Path.find(".php") != std::string::npos) {
+    //         PathInfo = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("php")->second;
+    // }
+    // else if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("cgi") != config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->end()
+    //     && Path.find(".cgi") != std::string::npos) {
+    //         PathInfo = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("cgi")->second;
+    // }
+    // std::cout << PathInfo << std::endl;
+    // char* res = realpath(PathInfo.c_str(), PATH_INFO);
+    // if (!res) {
+    //     perror("realpath");
+    //     exit(EXIT_FAILURE);
+    // }
+    // std::cout << PATH_INFO << std::endl;
     std::ofstream f("public/cgiOutput.html");
+    int InputFile = open("Body.txt", O_RDONLY, 0777);
     int fd[2];
     pipe(fd);
     pid_t c_pid = fork();
@@ -352,25 +366,34 @@ int Response::IfLocationHaveCGI(Config config) {
     }
     else if (c_pid == 0) {
         dup2(fd[1], 1);
-        close(fd[0]);
-        setenv("QUERY_STRING", Body.c_str(), 0);
+        dup2(InputFile, 0);
+        
+        // setenv("QUERY_STRING", QueryString.c_str(), 0);
+        // setenv("REQUEST_METHOD", HTTPMethod.c_str(), 0);
+        char *env[] = {"PATH_INFO=/Users/oouazize/Desktop/webserv/php-cgi", NULL};
+        // setenv("REDIRECT_STATUS", "200", 0);
+        // setenv("PATH_INFO", "Users/oouazize/Desktop/webserv/php-cgi", 0);
+        // setenv("CONTENT_LENGTH", "1024", 0);
+        // setenv("PATH_INFO", PATH_INFO, 0);
         extern char** environ;
-        execve(PATH_INFO, NULL, environ);
+        // char *PATH = strcpy(PATH, Path.c_str());
+        char *args[] = {"/Users/oouazize/Desktop/webserv/php-cgi", "public/index.php", NULL};
+        execve(args[0], args, env);
         perror("execve");
         exit(EXIT_FAILURE);
     }
-    char buffer[2049];
-    int r = read(fd[0], buffer, 2048);
+    char buffer[100000];
+    int r = read(fd[0], buffer, 10000);
     buffer[r] = '\0';
     close(fd[1]);
-    f << buffer;
+    std::cout << buffer;
     Path = "public/cgiOutput.html";
     close(fd[0]);
     StatusCode = 200;
     return 1;
 }
 
-void Response::ResponseFile(char **arv, std::string & resp, Config config, Request requestFile) {
+void Response::ResponseFile(char **arv, std::string & resp, Config config, Request& requestFile) {
     std::string newresp;
     StatusCode = getResponsePath(config, requestFile);
 	if (StatusCode >= 400)

@@ -3,20 +3,21 @@
 
 #define NEWLINE "\n"
 
-Request::Request() {}
+Request::Request() : Body("Body.txt") {}
 Request::~Request() {}
 
 std::string Request::getHTTPMethod() const {
     return HTTPMethod;
 }
-
 std::string Request::getPath() const {
     return Path;
 }
-std::string Request::getBody() const {
+std::string Request::getQueryString() const {
+    return QueryString;
+}
+std::ofstream& Request::getBody() {
     return Body;
 }
-
 std::string Request::getHTTPVersion() const {
     return HTTPVersion;
 }
@@ -41,9 +42,11 @@ void Request::RequestParse(std::string s) {
         Line = s.substr(0, s.find(NEWLINE));
     }
     s = s.substr(s.find(NEWLINE) + 1);
-    if (s.length()) Body = s;
+    Body.open("Body.txt");
+    if (s.length()) Body << s;
+    Body.close();
     if (HTTPMethod == "GET" && Path.find("?") != std::string::npos) {
-        Body = Path.substr(Path.find("?") + 1);
+        QueryString = Path.substr(Path.find("?") + 1);
         Path = Path.substr(0, Path.find("?"));
     }
 }

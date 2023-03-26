@@ -8,7 +8,8 @@ class Response {
         std::string HTTPMethod; // from requestParse
         std::string Path; // from requestParse
         std::string HTTPVersion; // from requestParse
-        std::string Body;
+        std::string QueryString; // from requestParse
+        std::ofstream Body;
         int StatusCode;
         std::string Host;
         std::string Port;
@@ -21,6 +22,7 @@ class Response {
         std::map<std::string, std::string> RequestHeader;
         std::string getHTTPMethod() const;
         std::string getHTTPVersion() const;
+        std::string getQueryString() const;
         std::string getPath() const;
         int getStatusCode() const;
         void setPath(std::string);
@@ -39,7 +41,7 @@ class Response {
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI(Config config);
-        void ResponseFile(char **, std::string &, Config, Request);
+        void ResponseFile(char **, std::string &, Config, Request&);
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();

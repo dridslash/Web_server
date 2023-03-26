@@ -5,6 +5,7 @@ LocationBlocks::LocationBlocks() : AutoIndex("off") {
     index = new std::vector<std::string>();
     try_files = new std::vector<std::string>();
     Return = new std::vector<std::string>();
+    CGI = new std::map<std::string, std::string>();
 }
 
 // LocationBlocks::~LocationBlocks() {
@@ -15,9 +16,9 @@ LocationBlocks::LocationBlocks() : AutoIndex("off") {
 // }
 
 void LocationBlocks::setAutoIndex(std::string str) { AutoIndex = str; }
-void LocationBlocks::setCGI(std::string str) { CGI = str; }
 void LocationBlocks::setRoot(std::string str) { root = str; }
 void LocationBlocks::setMethods(std::vector<std::string> str) { httpmethods->assign(str.begin(), str.end()); }
+void LocationBlocks::setCGI(std::pair<std::string, std::string> str) { CGI->insert(str); }
 void LocationBlocks::setIndex(std::vector<std::string> str) { index->assign(str.begin(), str.end()); }
 void LocationBlocks::setTryFiles(std::vector<std::string> str) { try_files->assign(str.begin(), str.end()); }
 void LocationBlocks::setReturn(std::vector<std::string> str) { Return->assign(str.begin(), str.end()); }
@@ -95,10 +96,10 @@ Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlock
     }
     else  return std::make_pair(std::make_pair(Store[i], Store[i]), 1);
     while (Store[i] != "}") {
-        if (Store[i] == "try_files" || Store[i] == "httpmethods" || Store[i] == "return" || Store[i] == "index") {
+        if (Store[i] == "cgi_param" || Store[i] == "try_files" || Store[i] == "httpmethods" || Store[i] == "return" || Store[i] == "index") {
             r = DirectivesMoreThanOneValue(location, server, Store, i, 1);
             if (r.second) return r;
-        } else if (Store[i] == "cgi_param" || Store[i] == "root" || Store[i] == "autoindex") {
+        } else if (Store[i] == "root" || Store[i] == "autoindex") {
             r = DirectivesOneValue(location, server, Store, i, 1);
             if (r.second) return r;
         }
@@ -148,6 +149,13 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             else (server.*arr[Dir])(Values);
         }
     } else {
+        if (Store[i] == "cgi_param") {
+            if (found != std::string::npos) return std::make_pair(std::make_pair(Store[i], Store[i]), 1);
+            if (Store[i+2].find(';') == std::string::npos)  return std::make_pair(std::make_pair(Store[i], Store[i]), 1);
+            location->setCGI(std::make_pair(Store[i+1], Store[i+2].substr(0, Store[i+2].find(';'))));
+            i += 3;
+            return std::make_pair(std::make_pair("GOOD", "JOB"), 0);
+        }
         void (LocationBlocks::*arr[4])( std::vector<std::string> ) = {&LocationBlocks::setIndex, &LocationBlocks::setMethods, &LocationBlocks::setTryFiles, &LocationBlocks::setReturn};
         int Dir = (Store[i] == "index") * 0 + (Store[i] == "httpmethods") * 1 + (Store[i] == "try_files") * 2 + (Store[i] == "return") * 3;
         // if their is only one value, then the Dir is index
@@ -204,9 +212,9 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             Ports.insert(stoi(Value));
         }
     } else {
-        void (LocationBlocks::*arr[3])( std::string ) = {&LocationBlocks::setCGI, &LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};
-        int Dir = (Store[i-1] == "cgi_param") * 0 + (Store[i-1] == "root") * 1 + (Store[i-1] == "autoindex") * 2;
-        if (Dir == 2 && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
+        void (LocationBlocks::*arr[2])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};
+        int Dir =(Store[i-1] == "root") * 0 + (Store[i-1] == "autoindex") * 1;
+        if (Dir && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
         (location->*arr[Dir])(Value);
     }
     if (IstillHave.length() == 0) i++;
@@ -251,7 +259,7 @@ int    Config::ConfigParse(char *ConfigPath) {
     while ( ConfigFile ) { 
         ss << Line;
         size_t found = Line.find_first_not_of(" \t");
-        if (Line[found] != '#') {
+        if (found < Line.size() && Line[found] != '#') {
             resp.append(Line);
 		    resp.append(1, '\n');
         }
