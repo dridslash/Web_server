@@ -401,10 +401,11 @@ void Response::ResponseFile(std::string & resp, Config config, Request& requestF
     resp.append(getDesc());
     if (StatusCode == 301) {
         resp.append("Location: " + Path);
-        resp.append("\r\n");
+        resp.append("\r\n\r\n");
     }
     else {
         resp.append("Content-Type: ");
+        std::cout << Path << std::endl;
         resp.append(getContentType(Path.c_str()));
         resp.append("\r\n");
         std::ifstream myfile(Path.c_str());
@@ -418,7 +419,6 @@ void Response::ResponseFile(std::string & resp, Config config, Request& requestF
             }
         }
     }
-    // std::cout << resp << std::endl;
 }
 
 std::string Response::getContentType(const char* resp) {
