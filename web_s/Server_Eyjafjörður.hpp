@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/26 14:02:44 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/27 10:02:20 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,13 @@ class Server_Eyjafjörður{
         bool Add_Event_to_queue_ker(int &fd , int filter);
         bool Disable_Event_from_queue_ker(int &fd , int filter);
         bool Delete_Event_to_queue_ker(int &fd , int filter);
+        bool Enable_Event_from_queue_ker(int &fd , int filter);
         void Change_Socket_To_Non_Block(int &fd);
         int Get_Server_Socket()const;
         void Print_Connection_Info();
         static Server_Eyjafjörður* Draupnir();
-        void Add_Client(int &fd);
+        void Add_Client(Client_Smár *client_copy);
+        void Delete_Client(Client_Smár *client_copy);
     private:
         static int reuse;
         int Server_Socket;

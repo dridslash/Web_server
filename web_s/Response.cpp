@@ -374,7 +374,6 @@ int Response::IfLocationHaveCGI(Config config) {
 void Response::ResponseFile(/*char **arv,*/ std::string & resp, Config config, Request requestFile) {
     std::string newresp;
     StatusCode = getResponsePath(config, requestFile);
-    std::cout << Path << std::endl;
 	if (StatusCode >= 400)
 		HandleErrorPages(config);
     resp = HTTPVersion;

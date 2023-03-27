@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/25 09:47:12 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/26 16:24:00 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,6 @@ class Gymir{
         Server_Eyjafjörður* Search_in_Servers(int fd,std::vector<Server_Eyjafjörður*>& Serv_All);
         int multiplexing(std::vector<Server_Eyjafjörður*>& Serv_All);
     private:
-        std::vector<Server_Eyjafjörður*>Servers;
+         
         static Config conf; 
 };

@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/26 14:07:49 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/27 10:17:49 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,10 @@ void Server_Eyjafjörður::Set_up_listeners(const char *port){
     if ((get_add_errno = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
         std::cerr << (get_add_errno) << std::endl;
     }
-    Server_Socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol);
+    if ((Server_Socket = socket(servinfo->ai_family,servinfo->ai_socktype,servinfo->ai_protocol)) < 0){
+        perror("Server_Socket");
+        exit(EXIT_FAILURE);
+    }
     if (setsockopt(Server_Socket,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0){
         perror("Setsockopt Error");
         exit(EXIT_FAILURE);
@@ -99,19 +102,7 @@ void Server_Eyjafjörður::Upp_ports(char *Config_file){
 }
 
 int Server_Eyjafjörður::multiplexing(){
-    // std::string response ("HTTP/1.1 200 OK\r\n"
-    //                     "Server: webserver-c\r\n"
-    //                     "Content-type: text/html\r\n\r\n"
-    //                     "<html>im the server here is you response</html>\r\n");
-
-    //                     std::string msg_from_client ("HTTP/1.1 200 OK\r\n"
-    //                     "Server: webserver-c\r\n"
-    //                     "Content-type: text/html\r\n\r\n"
-    //                     "<html>im the client here is you response</html>\r\n");
-    std::string wel ("HTTP/1.1 200 OK\r\n\r\n"
-                "<header>Welcome to the server</header>\r\n");
     char buffer[BUFFER_SIZE];
-    // char k[20];
     struct kevent retrieved_events[MAX_CONNECTIONS];
     Request requestFile;
     Response ResponsePath;
@@ -124,48 +115,60 @@ int Server_Eyjafjörður::multiplexing(){
         }
         for(int i = 0; i < n_ev; i++){
             int fd = static_cast<int>(retrieved_events[i].ident);
-            
-            // Server_Eyjafjörður* copy_server = Search_in_Servers(fd,Serv_All);
                 if (retrieved_events[i].filter == EVFILT_READ){
-                    std::cout << "Just Read" << std::endl;
+                    // std::cout << "Just Read" << std::endl;
                     if (listeners.find(fd) != listeners.end()){
                 // ACCPET CONNECTION
                 int client_socket = accept((*listeners.find(fd)),(struct sockaddr *)(&servinfo->ai_addr),
                             reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
-                Add_Client(client_socket);
-                Change_Socket_To_Non_Block(client_socket);
+                            std::cout << "socket accepted" << client_socket << std::endl;
+                Client_Smár *client_copy = new Client_Smár(client_socket);
+                Add_Client(client_copy);
                 if (client_socket < 0){
                     std::cout << "Error in accepting socket\n";
                     CLOSING_SOCKET(client_socket);
                 }
                 std::cout << "Connetion made"<<std::endl;
-                // Print_Connection_Info();
-                }
-                else{
-                    if (recv(fd,buffer,BUFFER_SIZE,0) <= 0){
-                    perror("recv");
-                    exit(EXIT_FAILURE);
-                }
-                // std::cout << buffer << std::endl;
-                
-                  //CALL PARSE REQUEST METHOD->
-                    requestFile.RequestParse(buffer);
-                  //CALL RESPONSE FORMING METHOD->
-                    ResponsePath.ResponseFile(resp, conf, requestFile);
-                //   Add_Event_to_queue_ker(fd,EVFILT_WRITE);
-                    if (send(fd,resp.c_str(),resp.size(),0) <= 0){
-                        perror("send");
-                        exit(EXIT_FAILURE);
+                }else{
+                    std::cout << "How many clinets -->" << Clients.size() << std::endl;
+                         for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
+                            std::cout << it->second->Client_Socket << std::endl;
+                        ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
+                        std::stringstream port_string;
+                        port_string << it->second->Client_Ip_Port_Connected.second;
+                        // std::cout << port_string.str() << std::endl;
+					    ResponsePath.setPort(port_string.str());
+                        if (recv(it->second->Client_Socket,buffer,BUFFER_SIZE,0) == EAGAIN || recv(it->second->Client_Socket,buffer,BUFFER_SIZE,0) == EWOULDBLOCK){
+                            perror("recv");
+                            exit(EXIT_FAILURE);
+                        }
+                        // std::cout << buffer << std::endl;
+                        it->second->temp_req = buffer;
+                         //CALL PARSE REQUEST METHOD->
+
+                            requestFile.RequestParse(it->second->temp_req);
+
+                        //CALL RESPONSE FORMING METHOD->
+
+                            ResponsePath.ResponseFile(it->second->temp_resp, conf, requestFile);
+                    
+                            Add_Event_to_queue_ker(fd,EVFILT_WRITE);
+                            // std::cout << "loop" << std::endl;
+                            // usleep(5000);
+                        }
                     }
-                //   continue;
+                }else if (retrieved_events[i].filter == EVFILT_WRITE){
+                    std::map<int,Client_Smár*>::iterator it = Clients.begin();
+                    for(; it != Clients.end();it++){
+                        if (it->second){
+                        if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size(),0) < 0){
+                            perror("send");
+                            exit(EXIT_FAILURE);
+                        }
+                        Delete_Client(it->second);
+                    }
                 }
-             }
-             else if (retrieved_events[i].filter == EVFILT_WRITE){
-                //SEND RESPONSE NOT COMPLETED 100% ---Prototype--
-                    // Disable_Event_from_queue_ker(fd,EVFILT_WRITE);
-                    // continue;
-                    // return (0);
-             }
+            }
         }
     }
 }
@@ -177,7 +180,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int &fd , int filter){
     struct kevent event[1];
-    EV_SET(&event[0],fd,filter,EV_ADD | EV_CLEAR ,0,0,NULL);
+    EV_SET(&event[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
     kevent(kq,event,1,NULL,0,NULL);
     return (true);
 }
@@ -189,8 +192,20 @@ bool Server_Eyjafjörður::Disable_Event_from_queue_ker(int &fd , int filter){
     return (true);
 }
 
+bool Server_Eyjafjörður::Enable_Event_from_queue_ker(int &fd , int filter){
+    struct kevent event[1];
+    EV_SET(&event[0],fd,filter,EV_ENABLE ,0,0,NULL);
+    kevent(kq,event,1,NULL,0,NULL);
+    return (true);
+}
 
-// bool Delete_Event_to_queue_ker(int &fd , int filter);
+
+bool Server_Eyjafjörður::Delete_Event_to_queue_ker(int &fd , int filter){
+    struct kevent event[1];
+    EV_SET(&event[0],fd,filter,EV_DELETE ,0,0,NULL);
+    kevent(kq,event,1,NULL,0,NULL);
+    return (true);
+}
 
 void Server_Eyjafjörður::Print_Connection_Info(){
     for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
@@ -200,10 +215,37 @@ void Server_Eyjafjörður::Print_Connection_Info(){
     }
 }
 
-void Server_Eyjafjörður::Add_Client(int &fd){
-    Client_Smár *client_copy = Client_Smár::Draupnir_Smár(fd);
+void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
+    Change_Socket_To_Non_Block(client_copy->Client_Socket);
     Add_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
-    // Add_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
     client_copy->Set_up_ip_port();
     Clients.insert(std::make_pair(client_copy->Client_Socket,client_copy));
 }
+
+void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
+    Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
+    Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
+    Clients.erase(client_copy->Client_Socket);
+}
+
+ // else{
+                //     ResponsePath.setHost((*Clients.find(fd)).second->Client_Ip_Port_Connected.first);
+                //     std::stringstream port_string;
+                //     port_string << (*Clients.find(fd)).second->Client_Ip_Port_Connected.second;
+                //     std::cout << port_string.str() << std::endl;
+				// 	ResponsePath.setPort(port_string.str());
+                //     if (recv((*Clients.find(fd)).first,buffer,BUFFER_SIZE,0) < 0){
+                //         perror("recv");
+                //         exit(EXIT_FAILURE);
+                //     }   
+
+
+ // else if (retrieved_events[i].filter == EVFILT_WRITE){
+                // // std::cout << "In Write" << std::endl;
+                // //SEND RESPONSE NOT COMPLETED 100% ---Prototype--
+                //     if (send((*Clients.find(fd)).first,resp.c_str(),resp.size(),0) < 0){
+                //         perror("send");
+                //         exit(EXIT_FAILURE);
+                //     }
+                //     // Disable_Event_from_queue_ker(fd,EVFILT_WRITE);
+                // }

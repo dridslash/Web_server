@@ -63,7 +63,9 @@ int main(int arc, char **arv) {
 						std::string str(buffer);
 						// std::cout << str << std::endl;
 						requestFile.RequestParse(str);
-						ResponsePath.ResponseFile(arv, resp, config, requestFile);
+						ResponsePath.Respons
+						
+						eFile(arv, resp, config, requestFile);
 						send(i, resp.c_str(), resp.size() + 1, 0);
 						std::cout << "Response Successfully sent" << std::endl;
 						resp.clear();
