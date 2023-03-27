@@ -5,17 +5,16 @@ class Config;
 class Request;
 class Response {
     private:
-        std::string HTTPMethod; // from requestParse
-        std::string Path; // from requestParse
-        std::string HTTPVersion; // from requestParse
-        std::string QueryString; // from requestParse
+        std::string HTTPMethod;
+        std::string Path;
+        std::string HTTPVersion;
+        std::string QueryString;
         std::ofstream Body;
         int StatusCode;
         std::string Host;
         std::string Port;
         std::pair<int, int>* LocationIndex;
         std::map<std::string, std::string> ContentTypes;
-        int Moved;
     public:
         Response();
         ~Response();

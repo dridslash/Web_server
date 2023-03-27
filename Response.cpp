@@ -282,7 +282,6 @@ int Response::HandleErrorPages(Config config) {
     return 200;
 }
 
-
 // std::cout << "-------------------------------------------------------------------------------" << std::endl;
 
 int Response::getResourcePath(Config config) {
@@ -393,7 +392,7 @@ int Response::IfLocationHaveCGI(Config config) {
     return 1;
 }
 
-void Response::ResponseFile(char **arv, std::string & resp, Config config, Request& requestFile) {
+void Response::ResponseFile(std::string & resp, Config config, Request& requestFile) {
     std::string newresp;
     StatusCode = getResponsePath(config, requestFile);
 	if (StatusCode >= 400)
@@ -404,9 +403,7 @@ void Response::ResponseFile(char **arv, std::string & resp, Config config, Reque
     if (StatusCode == 301)
         resp.append("Location: " + Path);
     else {
-        resp.append("Server: ");
-        resp.append(arv[0]);
-        resp.append("\nContent-Type: ");
+        resp.append("Content-Type: ");
         resp.append(getContentType(Path.c_str()));
         resp.append(1, '\n');
         std::ifstream myfile(Path.c_str());

@@ -1,6 +1,6 @@
 NAME    =	Webserv
 
-SRC    =	main.cpp socket.cpp Request.cpp Response.cpp ConfigFile.cpp
+SRC    =	
 
 GCC		=	c++ #-Wall -Wextra -Werror -std=c++98
 
