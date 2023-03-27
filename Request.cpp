@@ -25,6 +25,10 @@ std::map<std::string, std::string> Request::getRequestHeader() const {
     return RequestMap;
 }
 
+void Request::setPath(std::string path) {
+    Path = path;
+}
+
 void Request::RequestParse(std::string s) {
     std::string Key, Value, Line;
     // -------------Request Line------------------

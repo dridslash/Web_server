@@ -18,6 +18,7 @@ class Request {
         std::string getQueryString() const;
         std::ofstream& getBody();
         std::string getHTTPVersion() const;
+        void setPath(std::string);
         std::map<std::string, std::string> getRequestHeader() const;
         void RequestParse(std::string);
 };

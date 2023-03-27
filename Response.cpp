@@ -399,19 +399,21 @@ void Response::ResponseFile(std::string & resp, Config config, Request& requestF
     resp = HTTPVersion;
     resp.append(" " + std::to_string(StatusCode) + " ");
     resp.append(getDesc());
-    if (StatusCode == 301)
+    if (StatusCode == 301) {
         resp.append("Location: " + Path);
+        resp.append("\r\n");
+    }
     else {
         resp.append("Content-Type: ");
         resp.append(getContentType(Path.c_str()));
-        resp.append(1, '\n');
+        resp.append("\r\n");
         std::ifstream myfile(Path.c_str());
         if ( myfile.is_open() ) {
-            resp.append(1, '\n');
+            resp.append("\r\n");
             std::getline(myfile, newresp);
             while ( myfile ) {
                 resp.append(newresp);
-                resp.append(1, '\n');
+                resp.append("\r\n");
                 std::getline(myfile, newresp);
             }
         }
@@ -430,31 +432,31 @@ std::string Response::getContentType(const char* resp) {
 std::string Response::getDesc() {
     switch (StatusCode) {
         case 200:
-            return "OK\n";
+            return "OK\r\n";
         case 201:
-            return "Created\n";
+            return "Created\r\n";
         case 204:
-            return "No Content\n";
+            return "No Content\r\n";
         case 301:
-            return "Moved Permanently\n";
+            return "Moved Permanently\r\n";
         case 400:
-            return "Bad Request\n";
+            return "Bad Request\r\n";
         case 403:
-            return "Forbidden\n";
+            return "Forbidden\r\n";
         case 404:
-            return "Not Found\n";
+            return "Not Found\r\n";
         case 405:
-            return "Method Not Allowed\n";
+            return "Method Not Allowed\r\n";
         case 409:
-            return "Conflict\n";
+            return "Conflict\r\n";
         case 413:
-            return "Content Too Large\n";
+            return "Content Too Large\r\n";
         case 414:
-            return "URI Too Long\n";
+            return "URI Too Long\r\n";
         case 500:
-            return "Internal Server Error\n";
+            return "Internal Server Error\r\n";
         case 501:
-            return "Not Implemented\n";
+            return "Not Implemented\r\n";
     }
     return NULL;
 }

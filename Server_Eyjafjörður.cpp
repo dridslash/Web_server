@@ -142,7 +142,7 @@ int Server_Eyjafjörður::multiplexing(){
                             perror("recv");
                             exit(EXIT_FAILURE);
                         }
-                        // std::cout << buffer << std::endl;
+                        std::cout << buffer << std::endl;
                         it->second->temp_req = buffer;
                          //CALL PARSE REQUEST METHOD->
 
@@ -161,7 +161,7 @@ int Server_Eyjafjörður::multiplexing(){
                     std::map<int,Client_Smár*>::iterator it = Clients.begin();
                     while(it != Clients.end()){
                         if (it->second){
-                        if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size() + 1,0) < 0){
+                        if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size() + 1 ,0) < 0){
                             perror("send");
                             exit(EXIT_FAILURE);
                         }
