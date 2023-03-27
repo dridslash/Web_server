@@ -209,7 +209,7 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             if (Value.size() != strspn(Value.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
             if (stoi(Value) > 65535 || stoi(Value) <= 0) return std::make_pair(std::make_pair(Store[i-1], Value), 3);
             server.listen.push_back(Value);
-            Ports.insert(stoi(Value));
+            Ports.insert(Value);
         }
     } else {
         void (LocationBlocks::*arr[2])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};

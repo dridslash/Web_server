@@ -23,3 +23,7 @@
 #include <limits.h>
 
 #define BUFFER_SIZE 1024
+#define MAX_CONNECTIONS 200
+
+#define Dvergmál(a) std::cout << a << std::endl;
+#define CLOSING_SOCKET(s) close(s)

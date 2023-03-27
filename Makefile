@@ -1,6 +1,6 @@
 NAME    =	Webserv
 
-SRC    =	
+SRC    =	*.cpp
 
 GCC		=	c++ #-Wall -Wextra -Werror -std=c++98
 

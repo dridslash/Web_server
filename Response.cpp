@@ -368,15 +368,15 @@ int Response::IfLocationHaveCGI(Config config) {
         
         // setenv("QUERY_STRING", QueryString.c_str(), 0);
         // setenv("REQUEST_METHOD", HTTPMethod.c_str(), 0);
-        char *env[] = {"PATH_INFO=/Users/oouazize/Desktop/webserv/php-cgi", NULL};
+        // char *env[] = {"PATH_INFO=/Users/oouazize/Desktop/webserv/php-cgi", NULL};
         // setenv("REDIRECT_STATUS", "200", 0);
         // setenv("PATH_INFO", "Users/oouazize/Desktop/webserv/php-cgi", 0);
         // setenv("CONTENT_LENGTH", "1024", 0);
         // setenv("PATH_INFO", PATH_INFO, 0);
         extern char** environ;
         // char *PATH = strcpy(PATH, Path.c_str());
-        char *args[] = {"/Users/oouazize/Desktop/webserv/php-cgi", "public/index.php", NULL};
-        execve(args[0], args, env);
+        // char *args[] = {"/Users/oouazize/Desktop/webserv/php-cgi", "public/index.php", NULL};
+        // execve(args[0], args, env);
         perror("execve");
         exit(EXIT_FAILURE);
     }
