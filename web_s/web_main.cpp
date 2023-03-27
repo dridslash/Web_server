@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:03:19 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/26 13:26:57 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/27 13:29:39 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #define PORT 80
 #define backlog 20
 #define max_events 1000
-#define BUFFER_SIZE 1024
 // #define MICRO_PORTION 1000000
 int main(int ac, char **argv){
 

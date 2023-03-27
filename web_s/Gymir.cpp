@@ -6,12 +6,12 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/26 16:24:44 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/27 13:30:14 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Gymir.hpp"
-#define BUFFER_SIZE 1024
+// #define BUFFER_SIZE 1024
 
 // Config Gymir::conf;
 

@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/27 10:17:49 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/27 10:54:54 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,13 +159,14 @@ int Server_Eyjafjörður::multiplexing(){
                     }
                 }else if (retrieved_events[i].filter == EVFILT_WRITE){
                     std::map<int,Client_Smár*>::iterator it = Clients.begin();
-                    for(; it != Clients.end();it++){
+                    while(it != Clients.end()){
                         if (it->second){
-                        if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size(),0) < 0){
+                        if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size() + 1,0) < 0){
                             perror("send");
                             exit(EXIT_FAILURE);
                         }
                         Delete_Client(it->second);
+                        it = Clients.begin();
                     }
                 }
             }
@@ -180,7 +181,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int &fd , int filter){
     struct kevent event[1];
-    EV_SET(&event[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
+    EV_SET(&event[0],fd,filter,EV_ADD,0,0,NULL);
     kevent(kq,event,1,NULL,0,NULL);
     return (true);
 }
@@ -225,6 +226,7 @@ void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
 void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
+    CLOSING_SOCKET(client_copy->Client_Socket);
     Clients.erase(client_copy->Client_Socket);
 }
 

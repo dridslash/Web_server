@@ -34,7 +34,7 @@
 #include <limits.h>
 
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1000000
 #define MAX_CONNECTIONS 200
 
 
