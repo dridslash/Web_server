@@ -6,8 +6,7 @@
 
 
 Response::Response() : StatusCode(0) {
-    Moved = 0;
-    std::ifstream myfile("mime.types");
+    std::ifstream myfile("public/mime.types");
 	std::string key, value;
     if ( myfile.is_open() ) {
 		while ( myfile ) {
