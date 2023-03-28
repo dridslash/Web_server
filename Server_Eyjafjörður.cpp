@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/27 10:54:54 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/28 10:02:31 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,10 @@ void Server_Eyjafjörður::Set_up_listeners(const char *port){
 }
 
 void Server_Eyjafjörður::Upp_ports(char *Config_file){
+    if (!Config_file){
+        std::cout << "Supply a Config File for the Server to work!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     conf.ConfigParse(Config_file);
     int MAX_PORTS = conf.Ports.size();
     // listeners.reserve(MAX_PORTS);
@@ -142,7 +146,7 @@ int Server_Eyjafjörður::multiplexing(){
                             perror("recv");
                             exit(EXIT_FAILURE);
                         }
-                        std::cout << buffer << std::endl;
+                        // std::cout << buffer << std::endl;
                         it->second->temp_req = buffer;
                          //CALL PARSE REQUEST METHOD->
 
