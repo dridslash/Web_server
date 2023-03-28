@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/28 10:02:31 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/28 16:04:22 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ Server_Eyjafjörður::Server_Eyjafjörður(int sk,const char *port):Server_Socke
 }
 
 void Server_Eyjafjörður::Change_Socket_To_Non_Block(int &fd){
-        if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0){
+    if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0){
         perror("FCNTL Error");
         exit(EXIT_FAILURE);
     }
@@ -111,6 +111,7 @@ int Server_Eyjafjörður::multiplexing(){
     Request requestFile;
     Response ResponsePath;
     std::string resp;
+    int realod = 0;
     for(;;){
         int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
         if (n_ev < 0){
@@ -120,7 +121,6 @@ int Server_Eyjafjörður::multiplexing(){
         for(int i = 0; i < n_ev; i++){
             int fd = static_cast<int>(retrieved_events[i].ident);
                 if (retrieved_events[i].filter == EVFILT_READ){
-                    // std::cout << "Just Read" << std::endl;
                     if (listeners.find(fd) != listeners.end()){
                 // ACCPET CONNECTION
                 int client_socket = accept((*listeners.find(fd)),(struct sockaddr *)(&servinfo->ai_addr),
@@ -134,27 +134,25 @@ int Server_Eyjafjörður::multiplexing(){
                 }
                 std::cout << "Connetion made"<<std::endl;
                 }else{
+                    //sleep(5);
                     std::cout << "How many clinets -->" << Clients.size() << std::endl;
                          for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
                             std::cout << it->second->Client_Socket << std::endl;
                         ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
                         std::stringstream port_string;
                         port_string << it->second->Client_Ip_Port_Connected.second;
-                        // std::cout << port_string.str() << std::endl;
 					    ResponsePath.setPort(port_string.str());
-                        if (recv(it->second->Client_Socket,buffer,BUFFER_SIZE,0) == EAGAIN || recv(it->second->Client_Socket,buffer,BUFFER_SIZE,0) == EWOULDBLOCK){
-                            perror("recv");
-                            exit(EXIT_FAILURE);
-                        }
-                        // std::cout << buffer << std::endl;
-                        it->second->temp_req = buffer;
+                        it->second->Fill_Request_State_it();
+                        std::cout << it->second->Request << std::endl;
+                        // it->second->Fill_Request_State_it();
+                        // std::cout << it->second->Request << std::endl;
+                            // it->second->r = buffer;
                          //CALL PARSE REQUEST METHOD->
-
-                            requestFile.RequestParse(it->second->temp_req);
+                            // requestFile.RequestParse(it->second->r);
 
                         //CALL RESPONSE FORMING METHOD->
 
-                            ResponsePath.ResponseFile(it->second->temp_resp, conf, requestFile);
+                            // ResponsePath.ResponseFile(it->second->temp_resp, conf, requestFile);
                     
                             Add_Event_to_queue_ker(fd,EVFILT_WRITE);
                             // std::cout << "loop" << std::endl;
@@ -185,7 +183,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int &fd , int filter){
     struct kevent event[1];
-    EV_SET(&event[0],fd,filter,EV_ADD,0,0,NULL);
+    EV_SET(&event[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
     kevent(kq,event,1,NULL,0,NULL);
     return (true);
 }

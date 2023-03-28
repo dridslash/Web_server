@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/27 10:02:20 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/28 15:47:13 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,12 @@ class Server_Eyjafjörður{
         static Config conf;
         std::set<int>listeners;
         std::map<int,Client_Smár*>Clients;
-        // const char *PORT;
+        
         
         Server_Eyjafjörður();
         ~Server_Eyjafjörður();
         Server_Eyjafjörður(int sk,const char *port);
+        void Fill_Request_State_it(Client_Smár *clinet_for_request);
         void Upp_ports(char *Config_file);
         void Set_up_listeners(const char *port);
         int multiplexing();
