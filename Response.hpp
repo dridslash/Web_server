@@ -2,7 +2,7 @@
 #include "header.hpp"
 
 class Config;
-class Request;
+class Derya_Request;
 class Response {
     private:
         std::string HTTPMethod;
@@ -28,7 +28,7 @@ class Response {
         void setHost(std::string);
         void setPort(std::string);
         void setStatusCode(int);
-        int getResponsePath(Config, Request&);
+        int getResponsePath(Config, Derya_Request&);
         std::pair<int, int> getLocationBlockOfTheRequest(Config);
         int getResourcePath(Config);
         int GetMethod(Config, std::string);
@@ -40,7 +40,7 @@ class Response {
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI(Config config);
-        void ResponseFile(std::string &, Config, Request&);
+        void ResponseFile(std::string &, Config, Derya_Request&);
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();

@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 12:23:48 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 14:30:14 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,8 @@ class Server_Eyjafjörður{
         static Server_Eyjafjörður* Draupnir();
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
-        bool Check_Hmar_Clients();
-        void Fill_Request_State_it(Client_Smár* client_request_state);
+        bool Check_Hamr_Clients();
+        void Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath);
     private:
         static int reuse;
         int Server_Socket;

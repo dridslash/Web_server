@@ -13,13 +13,12 @@
 #pragma once
 #include "header.hpp"
 #define Max_Reads 2047
-#define Max_Send 2048
+#define Max_Writes 60000
 
 enum Hávamál{
     Still_Reading_Request,
     Request_Completed,
-    Response_Still_Serving,
-    Response_Completed
+    Response_Still_Serving
 };
 
 class Client_Smár{

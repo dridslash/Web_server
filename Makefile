@@ -2,7 +2,7 @@ NAME    =	Webserv
 
 SRC    =	*.cpp
 
-GCC		=	c++ -fsanitize=address #-Wall -Wextra -Werror -std=c++98
+GCC		=	c++ -fsanitize=address -g #-Wall -Wextra -Werror -std=c++98
 
 all: $(NAME)
 $(NAME):   $(SC_VEC)
