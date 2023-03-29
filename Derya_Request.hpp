@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 11:42:54 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 12:25:18 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,5 +24,5 @@ class Derya_Request{
     std::map<std::string,std::string> request_header;
 
     
-    void Parse_Request(char Request);
+    void Parse_Request(char *Request);
 };

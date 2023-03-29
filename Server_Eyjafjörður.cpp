@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 11:25:04 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 12:41:50 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ Config Server_Eyjafjörður::conf;
 int Server_Eyjafjörður::kq = kqueue();
 
 int Server_Eyjafjörður::reuse = 1;
+
+Derya_Request Server_Eyjafjörður::Request_parser;
 
 //------------------------------------------
 
@@ -145,7 +147,10 @@ int Server_Eyjafjörður::multiplexing(){
 					    ResponsePath.setPort(port_string.str());
                         // it->second->Fill_Request_State_it();
                         Fill_Request_State_it(it->second);
-                        std::cout << it->second->Request << std::endl;
+                        // std::cout << it->second->Request << std::endl;
+                        std::cout << "==== PARSED_REQUEST =====" << std::endl;
+                        Request_parser.Parse_Request(it->second->Request);
+                        std::cout << "=========================" << std::endl;
                             // it->second->r = buffer;
                          //CALL PARSE REQUEST METHOD->
                             // requestFile.RequestParse(it->second->r);

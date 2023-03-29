@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 11:18:28 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 12:23:48 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Client_Smár.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Derya_Request.hpp"
 
 class Server_Eyjafjörður{
     public:
@@ -24,6 +25,7 @@ class Server_Eyjafjörður{
         static Config conf;
         std::set<int>listeners;
         std::map<int,Client_Smár*>Clients;
+        static Derya_Request Request_parser;
         
         
         Server_Eyjafjörður();
