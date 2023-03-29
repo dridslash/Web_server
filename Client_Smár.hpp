@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/28 16:02:16 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 11:15:36 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Client_Smár{
         char Request[Max_Reads + 1];
         std::string temp_resp;
         int Bytes_received;
-        void Fill_Request_State_it();
+        // void Fill_Request_State_it();
         
     private:
 };
