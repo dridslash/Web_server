@@ -1,28 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Derya_Request.hpp                                  :+:      :+:    :+:   */
+/*   Derya_Request.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 11:42:54 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 11:43:21 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include "Derya_Request.hpp"
 
 
-#include "header.hpp"
-
-
-class Derya_Request{
-    public:
-    Derya_Request();
-    ~Derya_Request();
-    std::string Request_Line;
-    std::map<std::string,std::string> request_header;
-
+void Derya_Request::Parse_Request(char Request){
     
-    void Parse_Request(char Request);
-};
+}
