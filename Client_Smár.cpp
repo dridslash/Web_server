@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/26 11:31:33 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 11:14:52 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,11 @@ Client_Smár* Client_Smár::Draupnir_Smár(int sockcl){
 
 //-----------------------------------------
 
-Client_Smár::Client_Smár(){
+Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0) {
     
 }
 
-Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl){
+Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0) {
     
 }
 
@@ -39,3 +39,20 @@ void Client_Smár::Set_up_ip_port(){
     Client_Ip_Port_Connected.first = inet_ntoa(Own_addr.sin_addr);
     Client_Ip_Port_Connected.second = ntohs(Own_addr.sin_port);
 }
+
+// void Client_Smár::Fill_Request_State_it(){
+//     if (Client_Hamr == Still_Reading_Request){
+//     int R_received = recv(Client_Socket,Request + Bytes_received,1,0);
+//     if (R_received  == EAGAIN || R_received  == EWOULDBLOCK || R_received < 0){
+//         perror("recv");
+//         exit(EXIT_FAILURE);
+//     }
+//     std::cout << R_received << std::endl;
+//     Bytes_received += R_received;
+//     Request[Bytes_received] = 0;
+//     std::string get_when_ended(Request);
+//     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
+//             Client_Hamr = Request_Completed;
+//         }
+//     }
+// }

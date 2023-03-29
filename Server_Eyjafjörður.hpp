@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/27 10:02:20 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 12:23:48 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Client_Smár.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Derya_Request.hpp"
 
 class Server_Eyjafjörður{
     public:
@@ -24,7 +25,8 @@ class Server_Eyjafjörður{
         static Config conf;
         std::set<int>listeners;
         std::map<int,Client_Smár*>Clients;
-        // const char *PORT;
+        static Derya_Request Request_parser;
+        
         
         Server_Eyjafjörður();
         ~Server_Eyjafjörður();
@@ -42,6 +44,8 @@ class Server_Eyjafjörður{
         static Server_Eyjafjörður* Draupnir();
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
+        bool Check_Hmar_Clients();
+        void Fill_Request_State_it(Client_Smár* client_request_state);
     private:
         static int reuse;
         int Server_Socket;
