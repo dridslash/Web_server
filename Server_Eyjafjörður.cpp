@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 12:41:50 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/29 14:39:52 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,11 +110,8 @@ void Server_Eyjafjörður::Upp_ports(char *Config_file){
 }
 
 int Server_Eyjafjörður::multiplexing(){
-    char buffer[BUFFER_SIZE];
     struct kevent retrieved_events[MAX_CONNECTIONS];
-    Request requestFile;
     Response ResponsePath;
-    std::string resp;
     for(;;){
         int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
         if (n_ev < 0){
@@ -125,10 +122,10 @@ int Server_Eyjafjörður::multiplexing(){
             int fd = static_cast<int>(retrieved_events[i].ident);
                 if (retrieved_events[i].filter == EVFILT_READ){
                     if (listeners.find(fd) != listeners.end()){
-                                // ACCPET CONNECTION
+                    //====================== ACCPET CONNECTION ========================
                 int client_socket = accept((*listeners.find(fd)),(struct sockaddr *)(&servinfo->ai_addr),
                             reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
-                            std::cout << "socket accepted" << client_socket << std::endl;
+                            std::cout << "socket accepted --> " << client_socket << std::endl;
                 Client_Smár *client_copy = new Client_Smár(client_socket);
                 Add_Client(client_copy);
                 if (client_socket < 0){
@@ -138,20 +135,25 @@ int Server_Eyjafjörður::multiplexing(){
                 std::cout << "Connetion made"<<std::endl;
                 }else{
                     std::cout << "How many clinets --> " << Clients.size() << std::endl;
-                         while(!Check_Hmar_Clients()){
+                     //========== looping around state of clients
+                         while(!Check_Hamr_Clients()){
+                    //=========== looping around clients
                          for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
                             std::cout << "Client Socket --> " << it->second->Client_Socket << std::endl;
                         ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
                         std::stringstream port_string;
                         port_string << it->second->Client_Ip_Port_Connected.second;
 					    ResponsePath.setPort(port_string.str());
-                        // it->second->Fill_Request_State_it();
+                        
+                        //=========== RECEIVING REQUEST AND STATING CLIENTS =================
                         Fill_Request_State_it(it->second);
+                        //===================================================================
+                        
                         // std::cout << it->second->Request << std::endl;
-                        std::cout << "==== PARSED_REQUEST =====" << std::endl;
-                        Request_parser.Parse_Request(it->second->Request);
-                        std::cout << "=========================" << std::endl;
-                            // it->second->r = buffer;
+                        //"==== PARSED_REQUEST ====="
+                            Request_parser.Parse_Request(it->second->Request);
+                        //===========================
+                        
                          //CALL PARSE REQUEST METHOD->
                             // requestFile.RequestParse(it->second->r);
 
@@ -237,7 +239,7 @@ void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
     Clients.erase(client_copy->Client_Socket);
 }
 
-bool Server_Eyjafjörður::Check_Hmar_Clients(){
+bool Server_Eyjafjörður::Check_Hamr_Clients(){
     for(std::map<int,Client_Smár *>::iterator it = Clients.begin(); it != Clients.end();it++){
         if(it->second->Client_Hamr == Still_Reading_Request)
             return false;
