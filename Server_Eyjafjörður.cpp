@@ -244,7 +244,7 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 
 
 void Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath){
-    int S_sended = 0;
+    std::cout << client_request_state->Client_Hamr << std::endl;
     if (client_request_state->Client_Hamr == Still_Reading_Request) {
         int R_received = recv(client_request_state->Client_Socket,client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
         if (R_received  == EAGAIN || R_received  == EWOULDBLOCK || R_received < 0) {
@@ -254,27 +254,23 @@ void Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_st
         client_request_state->Bytes_received += R_received;
         client_request_state->Request[client_request_state->Bytes_received] = 0;
         std::string get_when_ended(client_request_state->Request);
+        std::cout << client_request_state->Request << std::endl;
+        Request_parser.Parse_Request(client_request_state->Request);
+        if (client_request_state->IsHeaderSended == 0)
+            ResponsePath.CheckRequestLine(conf, Request_parser);
+        if (ResponsePath.getStatusCode() != 200) {
+            client_request_state->Client_Hamr = Request_Completed;
+            if (ResponsePath.SendData(client_request_state))
+                Delete_Client(client_request_state);
+        }
         if (get_when_ended.find("\r\n\r\n") != std::string::npos)
             client_request_state->Client_Hamr = Request_Completed;
-        Request_parser.Parse_Request(client_request_state->Request);
     }
     if (client_request_state->Client_Hamr == Request_Completed) {
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
-        client_request_state->Client_Hamr = Response_Still_Serving;
-    }
-    if (client_request_state->Client_Hamr == Response_Still_Serving) {
-        ResponsePath.ResponseFile(client_request_state->temp_resp, conf, Request_parser);
-        if (client_request_state->Bytes_Sended != client_request_state->temp_resp.size()) {
-            int Size;
-            (Max_Writes - client_request_state->Bytes_Sended > client_request_state->temp_resp.size()) ? Size = client_request_state->temp_resp.size() : Size = Max_Writes - client_request_state->Bytes_Sended;
-            S_sended = send(client_request_state->Client_Socket, client_request_state->temp_resp.c_str() + client_request_state->Bytes_Sended, Size, 0);
-            if (S_sended < 0) {
-                perror("send");
-                exit(EXIT_FAILURE);
-            }
-            client_request_state->Bytes_Sended += S_sended;
-        }
-        else
+        if (client_request_state->IsHeaderSended == 0)
+            ResponsePath.MakeResponse(conf, Request_parser);
+        if (ResponsePath.SendData(client_request_state))
             Delete_Client(client_request_state);
     }
 }

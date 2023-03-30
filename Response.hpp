@@ -2,6 +2,7 @@
 #include "header.hpp"
 
 class Config;
+class Client_Smár;
 class Derya_Request;
 class Response {
     private:
@@ -40,7 +41,9 @@ class Response {
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI(Config config);
-        void ResponseFile(std::string &, Config, Derya_Request&);
+        int SendData(Client_Smár* &);
+        void MakeResponse(Config config, Derya_Request& requestFile);
+        int CheckRequestLine(Config config, Derya_Request& request);
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();

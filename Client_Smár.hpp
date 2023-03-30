@@ -33,9 +33,10 @@ class Client_Smár{
         void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
         char Request[Max_Reads + 1];
-        std::string temp_resp;
+        char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;
+        bool IsHeaderSended;
         // void Fill_Request_State_it();
         
     private:
