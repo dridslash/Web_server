@@ -408,7 +408,7 @@ void Response::ResponseFile(std::string & resp, Config config, Derya_Request& re
         if ( myfile.is_open() ) {
             resp.append("\r\n");
             std::getline(myfile, newresp);
-            while ( myfile ) {
+            while ( !myfile.eof() ) {
                 resp.append(newresp);
                 resp.append("\r\n");
                 std::getline(myfile, newresp);

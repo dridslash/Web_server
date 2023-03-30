@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 14:39:52 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/30 14:29:00 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ int Server_Eyjafjörður::multiplexing(){
                             port_string << it->second->Client_Ip_Port_Connected.second;
                             ResponsePath.setPort(port_string.str());
                             //=========== RECEIVING REQUEST AND STATING CLIENTS =================
-                            Fill_Request_State_it(it->second, ResponsePath);
+                            Fill_Request_State_it(it->second, ResponsePath,retrieved_events);
                             //===================================================================
                             // std::cout << it->second->Request << std::endl;
                             //"==== PARSED_REQUEST ====="
@@ -161,19 +161,6 @@ int Server_Eyjafjörður::multiplexing(){
                     std::cout << "Clients Request Completed" << std::endl;
                 }
             }
-            // else if (retrieved_events[i].filter == EVFILT_WRITE) {
-            //     std::map<int,Client_Smár*>::iterator it = Clients.begin();
-            //     while(it != Clients.end()) {
-            //         if (it->second) {
-            //             if (send(it->second->Client_Socket,it->second->temp_resp.c_str(),it->second->temp_resp.size() + 1 ,0) < 0){
-            //                 perror("send");
-            //                 exit(EXIT_FAILURE);
-            //             }
-            //             Delete_Client(it->second);
-            //             it = Clients.begin();
-            //         }
-            //     }
-            // }
         }
     }
 }
@@ -243,26 +230,37 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 }
 
 
-void Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath){
+void Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath,struct kevent *retrieved_events){
+    std::cout << "=================== Read Event =============================" << std::endl;
     int S_sended = 0;
     if (client_request_state->Client_Hamr == Still_Reading_Request) {
-        int R_received = recv(client_request_state->Client_Socket,client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
-        if (R_received  == EAGAIN || R_received  == EWOULDBLOCK || R_received < 0) {
-            perror("recv");
-            exit(EXIT_FAILURE);
+        int R_received = recv(client_request_state->Client_Socket,
+            client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
+        // if (R_received  == EAGAIN || R_received  == EWOULDBLOCK || R_received < 0) {
+        //     perror("recv");
+        //     exit(EXIT_FAILURE);
+        // }
+        if (R_received <= 0){
+            Delete_Client(client_request_state);
+            std::cout << "Client Droped" << std::endl;
         }
         client_request_state->Bytes_received += R_received;
         client_request_state->Request[client_request_state->Bytes_received] = 0;
+        std::cout << client_request_state->Request << std::endl;
         std::string get_when_ended(client_request_state->Request);
+        Request_parser.Parse_Request(client_request_state->Request);
         if (get_when_ended.find("\r\n\r\n") != std::string::npos)
             client_request_state->Client_Hamr = Request_Completed;
-        Request_parser.Parse_Request(client_request_state->Request);
     }
     if (client_request_state->Client_Hamr == Request_Completed) {
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
         client_request_state->Client_Hamr = Response_Still_Serving;
     }
-    if (client_request_state->Client_Hamr == Response_Still_Serving) {
+    if (Is_in_write_event(client_request_state->Client_Socket,retrieved_events)){
+        std::cout << "=================== Write Event =============================" << std::endl;
+        
+        //============================ RESPONSE TO BE REFACTORED =======================
+        if (client_request_state->Client_Hamr == Response_Still_Serving) {
         ResponsePath.ResponseFile(client_request_state->temp_resp, conf, Request_parser);
         if (client_request_state->Bytes_Sended != client_request_state->temp_resp.size()) {
             int Size;
@@ -276,5 +274,18 @@ void Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_st
         }
         else
             Delete_Client(client_request_state);
+        }
     }
+}
+
+bool Server_Eyjafjörður::Is_in_write_event(int &client_fd,struct kevent *retrieved_events){
+    int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
+    if (n_ev <  0){
+        perror("Kevent");
+    }
+        for(int i = 0; i < n_ev; i++){
+            if (Clients.find(retrieved_events[i].ident) != Clients.end())
+                return true;
+        }
+    return false;
 }
