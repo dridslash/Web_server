@@ -28,12 +28,12 @@ void Derya_Request::Parse_Request(char *Request){
         get_Request >> key;
         get_Request >> value;
         key = key.substr(0,key.find(":"));
-        request_header.insert(std::make_pair(key,value));
+        RequestHeader.insert(std::make_pair(key,value));
     }
-    for(std::map<std::string,std::string>::iterator it = request_header.begin(); it != request_header.end(); it++){
-        std::cout << it->first << std::endl;
-        std::cout << it->second << std::endl;
-    }
+    // for(std::map<std::string,std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end(); it++){
+    //     std::cout << it->first << std::endl;
+    //     std::cout << it->second << std::endl;
+    // }
 
     //================================================
     

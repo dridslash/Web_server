@@ -1,47 +1,32 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 5em 0;
+  margin: 0;
   padding: 0;
   background-color: #f2f2f2;
-  text-align: center;
-  background-color: rgb(174, 174, 174);
 }
 
 h1 {
-  font-family: monospace;
-  font-size: 5rem;
+  text-align: center;
+  margin-top: 50px;
 }
 
-#num1, #num2 {
-  border-radius: 20px;
-  border: 2px solid #141414;
-  padding: 0.2rem;
-  background: #ffffffb5;
+p {
+  text-align: center;
+  margin-top: 20px;
 }
 
-label {
-  font-style: italic;
-  font-weight: bold;
-}
-
-select {
-  border-radius: 20px;
-  padding: 0.1rem;
-  background-color: #3a3a3a;
-  color: #f5f5f5;
-}
-
-.sumbit {
-  border-radius: 20px;
-  padding: 0.5rem 0.6rem;
-  border-radius: 2px solid #1f1d1d;
-  background-color: #1f1d1d;
+button {
+  display: block;
+  margin: 50px auto;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
   color: white;
 }
 
-.sumbit:hover {
-  border-radius: 2px solid white;
-  background-color: white;
-  color: #1f1d1d;
+button:hover {
   cursor: pointer;
+  background-color: #3e8e41;
 }

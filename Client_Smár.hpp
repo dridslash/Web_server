@@ -13,12 +13,12 @@
 #pragma once
 #include "header.hpp"
 #define Max_Reads 2047
+#define Max_Writes 60000
 
 enum Hávamál{
     Still_Reading_Request,
     Request_Completed,
-    Response_Still_Serving,
-    Response_Completed
+    Response_Still_Serving
 };
 
 class Client_Smár{
@@ -35,6 +35,7 @@ class Client_Smár{
         char Request[Max_Reads + 1];
         std::string temp_resp;
         int Bytes_received;
+        int Bytes_Sended;
         // void Fill_Request_State_it();
         
     private:
