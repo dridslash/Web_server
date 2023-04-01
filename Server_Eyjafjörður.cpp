@@ -156,7 +156,6 @@ int Server_Eyjafjörður::multiplexing(){
                     else if (it->second->Client_Hamr == Response_Still_Serving) {
                         std::cout << "=================== Write Event =============================" << std::endl;
                         if (it->second->IsHeaderSended == 0) {
-                            std::cout << "/* cursor */" << std::endl;
                             ResponsePath.CheckRequestLine(conf, Request_parser);
                             ResponsePath.MakeResponse(conf, Request_parser);
                         }
@@ -224,6 +223,7 @@ void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
 }
 
 void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
+    std::cout << "Client Deleted" << std::endl;
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
     CLOSING_SOCKET(client_copy->Client_Socket);
