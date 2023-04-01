@@ -1,5 +1,5 @@
 #include "Response.hpp"
-#include "Request.hpp"
+#include "Derya_Request.hpp"
 #include "ConfigFile.hpp"
 #include <math.h>
 #include <cstdlib>
@@ -189,7 +189,6 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
                 ServersThatMatchThePort.insert(std::make_pair(int(i), config.Servers[i]));
         }
     }
-
     // get the Server that most matching the request
     for (std::map<int, ServerBlocks>::iterator it = ServersThatMatchThePort.begin(); it != ServersThatMatchThePort.end(); it++) {
         if (it->second.ServerName == Host || ServersThatMatchThePort.size() == 1) {
@@ -219,17 +218,15 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
             return std::make_pair(ServerThatMatchIndex, it->second);
         }
     }
-
     return std::make_pair(-1, -1);
 }
 
-int Response::getResponsePath(Config config, Request& request) {
+int Response::getResponsePath(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
-    Path = request.getPath();
-    HTTPMethod = request.getHTTPMethod();
-    HTTPVersion = request.getHTTPVersion();
-    QueryString = request.getQueryString();
-    RequestHeader = request.getRequestHeader();
+    Path = request.Path;
+    HTTPMethod = request.HTTPMethod;
+    HTTPVersion = request.HTTPVersion;
+    RequestHeader = request.RequestHeader;
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
@@ -243,11 +240,11 @@ int Response::getResponsePath(Config config, Request& request) {
     }
     if (Path.size() > 2048)// if URI contain more than 2048 chars
         return 414;
-    std::ifstream in_file("Body.txt");
-    in_file.seekg(0, std::ios::end);
-    int file_size = in_file.tellg();
-    if (file_size > stoi(config.MaxBodySize))// Request Body too large
-        return 413;
+    // std::ifstream in_file("Body.txt");
+    // in_file.seekg(0, std::ios::end);
+    // int file_size = in_file.tellg();
+    // if (file_size > stoi(config.MaxBodySize))// Request Body too large
+    //     return 413;
     LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(config));
     if (LocationIndex->first == -1) // Location not found (Client Error)
         return 404;
@@ -261,7 +258,7 @@ int Response::getResponsePath(Config config, Request& request) {
         return 405;
     int Method = (HTTPMethod == "GET") * 0 + (HTTPMethod == "POST") * 1 + (HTTPMethod == "DELETE") * 2;
     int (Response::*arr[3]) ( Config, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
-    StatusCode = (this->*arr[Method])(config, request.getPath());
+    StatusCode = (this->*arr[Method])(config, request.Path);
     return StatusCode;
 }
 
@@ -384,14 +381,13 @@ int Response::IfLocationHaveCGI(Config config) {
     int r = read(fd[0], buffer, 10000);
     buffer[r] = '\0';
     close(fd[1]);
-    std::cout << buffer;
     Path = "public/cgiOutput.html";
     close(fd[0]);
     StatusCode = 200;
     return 1;
 }
 
-void Response::ResponseFile(std::string & resp, Config config, Request& requestFile) {
+void Response::ResponseFile(std::string & resp, Config config, Derya_Request& requestFile) {
     std::string newresp;
     StatusCode = getResponsePath(config, requestFile);
 	if (StatusCode >= 400)
@@ -412,7 +408,7 @@ void Response::ResponseFile(std::string & resp, Config config, Request& requestF
         if ( myfile.is_open() ) {
             resp.append("\r\n");
             std::getline(myfile, newresp);
-            while ( myfile ) {
+            while ( !myfile.eof() ) {
                 resp.append(newresp);
                 resp.append("\r\n");
                 std::getline(myfile, newresp);
