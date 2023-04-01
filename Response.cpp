@@ -223,13 +223,24 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 }
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
+    LocationIndex = new std::pair<int, int>(-1, -1);
+    Path = request.Path;
+    HTTPMethod = request.HTTPMethod;
+    HTTPVersion = request.HTTPVersion;
     RequestHeader = request.RequestHeader;
+    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
     if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
+    for (std::string::size_type i = 0; i < Path.size(); i++) {// if request uri contain a character not allowed
+        if (CharURI.find(Path[i]) == std::string::npos)
+            return 400;
+    }
+    if (Path.size() > 2048)// if URI contain more than 2048 chars
+        return 414;
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
@@ -249,28 +260,6 @@ int Response::getResponsePath(Config config, Derya_Request& request) {
     int Method = (HTTPMethod == "GET") * 0 + (HTTPMethod == "POST") * 1 + (HTTPMethod == "DELETE") * 2;
     int (Response::*arr[3]) ( Config, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
     StatusCode = (this->*arr[Method])(config, request.Path);
-    return StatusCode;
-}
-
-int Response::CheckRequestLine(Config config, Derya_Request& request) {
-    LocationIndex = new std::pair<int, int>(-1, -1);
-    Path = request.Path;
-    HTTPMethod = request.HTTPMethod;
-    HTTPVersion = request.HTTPVersion;
-    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
-    for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
-        if (CharURI.find(Path[i]) == std::string::npos) {
-            StatusCode = 400;
-            break ;
-        }
-    }
-    if (StatusCode == 200 && Path.size() > 2048) // if URI contain more than 2048 chars
-        StatusCode = 414;
-    int Method = (HTTPMethod == "GET") * 1 + (HTTPMethod == "POST") * 2 + (HTTPMethod == "DELETE") * 3;
-    if (StatusCode == 200 && Method == 0)
-        StatusCode = 405;
-    if (StatusCode != 200)
-        HandleErrorPages(config);
     return StatusCode;
 }
 
@@ -399,6 +388,28 @@ int Response::IfLocationHaveCGI(Config config) {
     return 1;
 }
 
+int Response::CheckRequestLine(Config config, Derya_Request& request) {
+    LocationIndex = new std::pair<int, int>(-1, -1);
+    Path = request.Path;
+    HTTPMethod = request.HTTPMethod;
+    HTTPVersion = request.HTTPVersion;
+    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
+        if (CharURI.find(Path[i]) == std::string::npos) {
+            StatusCode = 400;
+            break ;
+        }
+    }
+    if (StatusCode == 200 && Path.size() > 2048) // if URI contain more than 2048 chars
+        StatusCode = 414;
+    int Method = (HTTPMethod == "GET") * 1 + (HTTPMethod == "POST") * 2 + (HTTPMethod == "DELETE") * 3;
+    if (StatusCode == 200 && Method == 0)
+        StatusCode = 405;
+    if (StatusCode != 200)
+        HandleErrorPages(config);
+    return StatusCode;
+}
+
 void Response::MakeResponse(Config config, Derya_Request& requestFile) {
     if (StatusCode == 200) {
         StatusCode = getResponsePath(config, requestFile);
@@ -408,10 +419,12 @@ void Response::MakeResponse(Config config, Derya_Request& requestFile) {
 }
 
 int Response::SendData(Client_Smár* & Client) {
+    std::cout << "Sending..." << std::endl;
     size_t Size;
     int file_size;
     int eof = 1;
     int S_sended;
+    std::cout << Path << std::endl;
     if (!Client->IsHeaderSended) {
         // Send Headers
         std::string newresp = HTTPVersion;
@@ -452,6 +465,37 @@ int Response::SendData(Client_Smár* & Client) {
     return 1;
 }
 
+// void Response::ResponseFile(std::string & resp, Config config, Derya_Request& requestFile) {
+//     std::string newresp;
+//     StatusCode = getResponsePath(config, requestFile);
+// 	if (StatusCode >= 400)
+// 		HandleErrorPages(config);
+//     resp = HTTPVersion;
+//     resp.append(" " + std::to_string(StatusCode) + " ");
+//     resp.append(getDesc());
+//     if (StatusCode == 301) {
+//         resp.append("Location: " + Path);
+//         resp.append("\r\n\r\n");
+//     }
+//     else {
+//         resp.append("Content-Type: ");
+//         std::cout << Path << std::endl;
+//         resp.append(getContentType(Path.c_str()));
+//         resp.append("\r\n");
+//         std::ifstream myfile(Path.c_str());
+//         if ( myfile.is_open() ) {
+//             resp.append("\r\n");
+//             std::getline(myfile, newresp);
+//             while ( !myfile.eof() ) {
+//                 resp.append(newresp);
+//                 resp.append("\r\n");
+//                 std::getline(myfile, newresp);
+//             }
+//         }
+//     }
+// }
+
+
 std::string Response::getContentType(const char* resp) {
 	std::string Default = "application/octet-stream";
 	std::map<std::string, std::string>::iterator formula = ContentTypes.find(strrchr(resp, '.'));
@@ -489,5 +533,5 @@ std::string Response::getDesc() {
         case 501:
             return "Not Implemented\r\n";
     }
-    return NULL;
+    return "Not Implemented\r\n";
 }

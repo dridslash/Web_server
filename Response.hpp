@@ -2,8 +2,8 @@
 #include "header.hpp"
 
 class Config;
-class Client_Smár;
 class Derya_Request;
+class Client_Smár;
 class Response {
     private:
         std::string HTTPMethod;
@@ -41,11 +41,12 @@ class Response {
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI(Config config);
-        int SendData(Client_Smár* &);
-        void MakeResponse(Config config, Derya_Request& requestFile);
-        int CheckRequestLine(Config config, Derya_Request& request);
+        void ResponseFile(std::string &, Config, Derya_Request&);
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();
+        int CheckRequestLine(Config config, Derya_Request& request);
+        void MakeResponse(Config config, Derya_Request& requestFile);
+        int SendData(Client_Smár* & Client);
 
 };
