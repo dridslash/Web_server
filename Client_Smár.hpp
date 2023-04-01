@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/29 11:15:36 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/03/31 09:24:48 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,10 @@ class Client_Smár{
         void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
         char Request[Max_Reads + 1];
-        std::string temp_resp;
+        char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;
+        bool IsHeaderSended;
         // void Fill_Request_State_it();
         
     private:
