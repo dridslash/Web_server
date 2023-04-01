@@ -57,7 +57,7 @@ class Server_Eyjafjörður{
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
         bool Check_Hamr_Clients();
-        void Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath);
+        int Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath);
         bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);

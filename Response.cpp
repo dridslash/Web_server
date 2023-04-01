@@ -223,6 +223,7 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 }
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
+    std::cout << Path << std::endl;
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
