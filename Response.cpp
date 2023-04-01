@@ -223,6 +223,7 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 }
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
+    std::cout << Path << std::endl;
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
@@ -257,6 +258,7 @@ int Response::getResponsePath(Config config, Derya_Request& request) {
         config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end(),
             HTTPMethod) == config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end()) // Method not allowed
         return 405;
+    std::cout << Path << std::endl;
     int Method = (HTTPMethod == "GET") * 0 + (HTTPMethod == "POST") * 1 + (HTTPMethod == "DELETE") * 2;
     int (Response::*arr[3]) ( Config, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
     StatusCode = (this->*arr[Method])(config, request.Path);
@@ -290,6 +292,7 @@ int Response::getResourcePath(Config config) {
     Path.erase(0, config.Servers[LocationIndex->first].Locations[LocationIndex->second]->path.size());
     Path.insert(0, "/");
     Path.insert(0, RootDir);
+    std::cout << Path << std::endl;
 	if (stat(Path.c_str(), &sb)) return 404;
     return 200;
 }
@@ -389,6 +392,7 @@ int Response::IfLocationHaveCGI(Config config) {
 }
 
 int Response::CheckRequestLine(Config config, Derya_Request& request) {
+    StatusCode = 200;
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
@@ -433,6 +437,7 @@ int Response::SendData(Client_Smár* & Client) {
         if (StatusCode == 301) {
             newresp.append("Location: " + Path);
         } else {
+            newresp.append("Content-Length: 819953\r\n");
             newresp.append("Content-Type: ");
             newresp.append(getContentType(Path.c_str()));
         }

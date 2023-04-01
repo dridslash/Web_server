@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/01 15:39:09 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/01 17:41:32 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,40 +136,23 @@ int Server_Eyjafjörður::multiplexing(){
                 }
                 std::cout << "Connetion made"<<std::endl;
             }
-            else {
                 std::map<int,Client_Smár*>::iterator it = Clients.begin();
                 while (it != Clients.end()) {
+                    std::cout << "kkk2" << std::endl;
                     ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
                     std::stringstream port_string;
                     port_string << it->second->Client_Ip_Port_Connected.second;
                     ResponsePath.setPort(port_string.str());
                     if(it->second->Client_Hamr == Still_Reading_Request) {
                         std::cout << "=================== Read Event =============================" << std::endl;
-                        if (Fill_Request_State_it(it->second, ResponsePath)) {
-                            std::map<int,Client_Smár*>::iterator ite = it;
-                            it++;
-                            Delete_Client(ite->second);
-                        }
-                        else
-                            it++;
+                        Fill_Request_State_it(it->second, ResponsePath);
                     }
-                    else if (it->second->Client_Hamr == Response_Still_Serving) {
+                    if (it->second->Client_Hamr == Response_Still_Serving) {
                         std::cout << "=================== Write Event =============================" << std::endl;
-                        if (it->second->IsHeaderSended == 0) {
-                            std::cout << "/* cursor */" << std::endl;
-                            ResponsePath.CheckRequestLine(conf, Request_parser);
-                            ResponsePath.MakeResponse(conf, Request_parser);
-                        }
-                        if (ResponsePath.SendData(it->second)) {
-                            std::map<int,Client_Smár*>::iterator ite = it;
-                            it++;
-                            Delete_Client(ite->second);
-                        }
-                        else
-                            it++;
+                        
                     }
+                    it++;
                 }
-            }
         }
     }
 }
@@ -180,7 +163,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 }
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int fd , int filter){
-    EV_SET(&events[0],fd,filter,EV_ADD | EV_CLEAR | EV_ENABLE,0,0,NULL);
+    EV_SET(&events[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
     kevent(kq,&events[0],1,NULL,0,NULL);
     return (true);
 }
@@ -224,6 +207,7 @@ void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
 }
 
 void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
+    std::cout << "Client Deleted" << std::endl;
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
     CLOSING_SOCKET(client_copy->Client_Socket);
@@ -240,6 +224,7 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 
 
 int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath){
+    if (client_request_state->Client_Hamr == Still_Reading_Request){
     int R_received = recv(client_request_state->Client_Socket,
         client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
     if (R_received <= 0){
@@ -253,7 +238,9 @@ int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_sta
     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
         std::cout << "================ Request Complete =================" << std::endl;
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+        // Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
         client_request_state->Client_Hamr = Response_Still_Serving;
+    }
     }
     return 0;
 }
