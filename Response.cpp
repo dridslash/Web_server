@@ -437,7 +437,11 @@ int Response::SendData(Client_Smár* & Client) {
         if (StatusCode == 301) {
             newresp.append("Location: " + Path);
         } else {
-            newresp.append("Content-Type: ");
+            newresp.append("Content-Length: ");
+            std::ifstream in_file(Path.c_str());
+            in_file.seekg(0, std::ios::end);
+            newresp.append(std::to_string(in_file.tellg()));
+            newresp.append("\r\nContent-Type: ");
             newresp.append(getContentType(Path.c_str()));
         }
         newresp.append("\r\n\r\n");
