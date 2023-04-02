@@ -411,97 +411,93 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
     return StatusCode;
 }
 
-void Response::MakeResponse(Config config, Derya_Request& requestFile) {
+void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile) {
     if (StatusCode == 200) {
         StatusCode = getResponsePath(config, requestFile);
         if (StatusCode >= 400)
             HandleErrorPages(config);
     }
+    std::cout << "Here" << std::endl;
+    Client->binaryFile.open(Path.c_str(), std::ios::binary);
+    Client->binaryFile.seekg(0, std::ios::end);
+    Client->FileLength = Client->binaryFile.tellg();
+    Client->binaryFile.seekg(0, Client->binaryFile.beg);
 }
 
-int Response::SendData(Client_Smár* & Client) {
-    std::cout << "Sending..." << std::endl;
-    size_t Size;
-    int file_size;
-    int eof = 1;
+void Response::SendData(Client_Smár* & Client) {
     int S_sended;
+    int ReadReturn;
     if (!Client->IsHeaderSended) {
-        // Send Headers
+        std::cout << "Sending Headers..." << std::endl;
         std::string newresp = HTTPVersion;
         newresp.append(" " + std::to_string(StatusCode) + " ");
         newresp.append(getDesc());
         if (StatusCode == 301) {
             newresp.append("Location: " + Path);
         } else {
-            newresp.append("Content-Length: ");
-            std::ifstream in_file(Path.c_str());
-            in_file.seekg(0, std::ios::end);
-            newresp.append(std::to_string(in_file.tellg()));
-            newresp.append("\r\nContent-Type: ");
+            newresp.append("Content-Type: ");
             newresp.append(getContentType(Path.c_str()));
+            newresp.append("\r\nContent-Length: ");
+            newresp.append(std::to_string(Client->FileLength));
         }
         newresp.append("\r\n\r\n");
-        sprintf(Client->temp_resp, "%s", newresp.c_str());
-        (Max_Writes > newresp.size()) ? Size = newresp.size() : Size = Max_Writes;
+        std::strcpy(Client->temp_resp, newresp.c_str());
+        ReadReturn = newresp.size();
     }
     else {
-        // Send Body
-        FILE *File = fopen(Path.c_str(), "r");
-        std::ifstream in_file(Path.c_str());
-        in_file.seekg(0, std::ios::end);
-        file_size = in_file.tellg();
-        file_size -= Client->Bytes_Sended;
-        (Max_Writes > file_size) ? Size = file_size : Size = Max_Writes;
-        eof = fread(Client->temp_resp, 1, Size, File);
+        std::cout << "Sending Body..." << std::endl;
+        Client->binaryFile.read(Client->temp_resp, Max_Writes);
+        ReadReturn = Client->binaryFile.gcount();
     }
-    if (eof) {
-        S_sended = send(Client->Client_Socket, Client->temp_resp, Size, 0);
-        if (S_sended < 0) {
-            perror("send");
-            exit(EXIT_FAILURE);
-        }
-        if (Client->IsHeaderSended)
-            Client->Bytes_Sended += S_sended;
-        Client->IsHeaderSended = true;
-        if (Client->Bytes_Sended == file_size) return 1;
-        return 0;
+    if (!ReadReturn) {
+        std::cout << "Send Done" << std::endl;
+        Client->binaryFile.close();
+        Client->Client_Hamr = Response_Completed;
+        return ;
     }
-    return 1;
+    S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
+    if (S_sended < 0) {
+        perror("send");
+        exit(EXIT_FAILURE);
+    }
+    Client->IsHeaderSended = true;
+    return ;
 }
 
-void Response::ResponseFile(std::string & resp, Config config, Derya_Request& requestFile) {
-    std::string newresp;
-    StatusCode = getResponsePath(config, requestFile);
-	if (StatusCode >= 400)
-		HandleErrorPages(config);
-    resp = HTTPVersion;
-    resp.append(" " + std::to_string(StatusCode) + " ");
-    resp.append(getDesc());
-    if (StatusCode == 301) {
-        resp.append("Location: " + Path);
-        resp.append("\r\n\r\n");
-    }
-    else {
-        // newresp.append("Content-Length: ");
-        // std::ifstream in_file(Path.c_str());
-        // in_file.seekg(0, std::ios::end);
-        // newresp.append(std::to_string(in_file.tellg()));
-        // resp.append("\r\nContent-Type: ");
-        resp.append("Content-Type: ");
-        resp.append(getContentType(Path.c_str()));
-        resp.append("\r\n");
-        std::ifstream myfile(Path.c_str());
-        if ( myfile.is_open() ) {
-            resp.append("\r\n");
-            std::getline(myfile, newresp);
-            while ( !myfile.eof() ) {
-                resp.append(newresp);
-                resp.append("\r\n");
-                std::getline(myfile, newresp);
-            }
-        }
-    }
-}
+// void Response::ResponseFile(std::string & resp, Config config, Derya_Request& requestFile) {
+//     std::string newresp;
+//     StatusCode = getResponsePath(config, requestFile);
+// 	if (StatusCode >= 400)
+// 		HandleErrorPages(config);
+//     resp = HTTPVersion;
+//     resp.append(" " + std::to_string(StatusCode) + " ");
+//     resp.append(getDesc());
+//     if (StatusCode == 301) {
+//         resp.append("Location: " + Path);
+//         resp.append("\r\n\r\n");
+//     }
+//     else {
+//         newresp.append("Server: webserv\r\n");
+//         newresp.append("Content-Length: ");
+//         std::ifstream in_file(Path.c_str());
+//         in_file.seekg(0, std::ios::end);
+//         newresp.append(std::to_string(in_file.tellg()));
+//         resp.append("\r\nContent-Type: ");
+//         // resp.append("Content-Type: ");
+//         resp.append(getContentType(Path.c_str()));
+//         resp.append("\r\n");
+//         std::ifstream myfile(Path.c_str());
+//         if ( myfile.is_open() ) {
+//             resp.append("\r\n");
+//             std::getline(myfile, newresp);
+//             while ( !myfile.eof() ) {
+//                 resp.append(newresp);
+//                 resp.append("\r\n");
+//                 std::getline(myfile, newresp);
+//             }
+//         }
+//     }
+// }
 
 
 std::string Response::getContentType(const char* resp) {

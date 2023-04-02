@@ -46,7 +46,7 @@ class Response {
         int RemoveDirectory(std::string);
         std::string getDesc();
         int CheckRequestLine(Config config, Derya_Request& request);
-        void MakeResponse(Config config, Derya_Request& requestFile);
-        int SendData(Client_Smár* & Client);
+        void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
+        void SendData(Client_Smár* & Client);
 
 };

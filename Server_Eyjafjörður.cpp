@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server_Eyjafjörður.cpp                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/02 15:43:44 by mnaqqad          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server_Eyjafjörður.hpp"
 
 //--------------STATIC_VARIABLES------------
@@ -124,7 +112,7 @@ int Server_Eyjafjörður::multiplexing(){
         }
         for (int i = 0; i < n_ev ; i++) {
             if (retrieved_events[i].filter == EVFILT_READ && listeners.find(retrieved_events[i].ident) != listeners.end()){
-                //====================== ACCPET CONNECTION ========================
+                //====================== ACCEPT CONNECTION ========================
                 int client_socket = accept((*listeners.find(retrieved_events[i].ident)),(struct sockaddr *)(&servinfo->ai_addr),
                     reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
                 std::cout << "socket accepted --> " << client_socket << std::endl;
@@ -136,21 +124,37 @@ int Server_Eyjafjörður::multiplexing(){
                 }
                 std::cout << "Connetion made"<<std::endl;
             }
-            Client_loop(retrieved_events,n_ev,ResponsePath);
-            
+            // Client_loop(retrieved_events,n_ev,ResponsePath);  
         }
     }
 }
 
 
 void Server_Eyjafjörður::Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath){
-    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end(); it++){
-         if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == READ){
+    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();){
+        if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == READ) {
+            ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
+            std::stringstream port_string;
+            port_string << it->second->Client_Ip_Port_Connected.second;
+            ResponsePath.setPort(port_string.str());
             Fill_Request_State_it(it->second,ResponsePath);
-         }
-        //  if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE){
-            
-        //  }
+        }
+        if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE) {
+            if (it->second->IsHeaderSended == 0) {
+                ResponsePath.CheckRequestLine(conf, Request_parser);
+                ResponsePath.MakeResponse(it->second, conf, Request_parser);
+            }
+            ResponsePath.SendData(it->second);
+            if (it->second->Client_Hamr == Response_Completed) {
+                std::map<int,Client_Smár*>::iterator ite = it;
+                it++;
+                Delete_Client(ite->second);
+            }
+            else
+                it++;
+        }
+        else
+            it++;
     }
 }
 
@@ -242,6 +246,7 @@ int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_sta
     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
         std::cout << "================ Request Complete =================" << std::endl;
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+        // Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
         client_request_state->Client_Hamr = Response_Still_Serving;
         }
     }
