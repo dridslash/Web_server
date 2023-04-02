@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/31 09:24:48 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/02 15:41:42 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 enum Hávamál{
     Still_Reading_Request,
     Request_Completed,
-    Response_Still_Serving
+    Response_Still_Serving,
+    Response_Completed
 };
 
 class Client_Smár{
@@ -37,7 +38,7 @@ class Client_Smár{
         int Bytes_received;
         int Bytes_Sended;
         bool IsHeaderSended;
-        // void Fill_Request_State_it();
-        
-    private:
+        // ================= String Part ===================
+        std::string resp;
+        // ================= String Part ===================
 };

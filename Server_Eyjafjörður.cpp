@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/01 17:41:32 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/02 15:43:44 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,27 +136,30 @@ int Server_Eyjafjörður::multiplexing(){
                 }
                 std::cout << "Connetion made"<<std::endl;
             }
-                std::map<int,Client_Smár*>::iterator it = Clients.begin();
-                while (it != Clients.end()) {
-                    std::cout << "kkk2" << std::endl;
-                    ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
-                    std::stringstream port_string;
-                    port_string << it->second->Client_Ip_Port_Connected.second;
-                    ResponsePath.setPort(port_string.str());
-                    if(it->second->Client_Hamr == Still_Reading_Request) {
-                        std::cout << "=================== Read Event =============================" << std::endl;
-                        Fill_Request_State_it(it->second, ResponsePath);
-                    }
-                    if (it->second->Client_Hamr == Response_Still_Serving) {
-                        std::cout << "=================== Write Event =============================" << std::endl;
-                        
-                    }
-                    it++;
-                }
+            Client_loop(retrieved_events,n_ev,ResponsePath);
+            
         }
     }
 }
 
+
+void Server_Eyjafjörður::Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath){
+    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end(); it++){
+         if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == READ){
+            Fill_Request_State_it(it->second,ResponsePath);
+         }
+        //  if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE){
+            
+        //  }
+    }
+}
+
+void Server_Eyjafjörður::Drop_clients(){
+    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end(); it++){
+        if (it->second->Client_Hamr == Response_Completed)
+            Delete_Client(it->second);
+    }
+}
 
 int Server_Eyjafjörður::Get_Server_Socket()const{
     return (Server_Socket);
@@ -225,6 +228,7 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 
 int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath){
     if (client_request_state->Client_Hamr == Still_Reading_Request){
+        std::cout << "=============== READ EVENT =================" << std::endl;
     int R_received = recv(client_request_state->Client_Socket,
         client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
     if (R_received <= 0){
@@ -238,9 +242,8 @@ int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_sta
     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
         std::cout << "================ Request Complete =================" << std::endl;
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
-        // Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
         client_request_state->Client_Hamr = Response_Still_Serving;
-    }
+        }
     }
     return 0;
 }
@@ -285,8 +288,7 @@ int Server_Eyjafjörður::Search_in_Events(int fd, struct kevent *retrieved_even
         if (fd == retrieved_events[i].ident){
             if (retrieved_events[i].filter == EVFILT_READ)
                 return READ;
-            else
-                if (retrieved_events[i].filter == EVFILT_WRITE)
+            else if (retrieved_events[i].filter == EVFILT_WRITE)
                 return WRITE;
         }
     }

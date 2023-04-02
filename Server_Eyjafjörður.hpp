@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:54:59 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/01 14:25:18 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/02 15:41:00 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,8 @@ class Server_Eyjafjörður{
         bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
+        void Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath);
+        void Drop_clients();
         
     private:
         static int reuse;
