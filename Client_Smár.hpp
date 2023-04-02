@@ -37,7 +37,7 @@ class Client_Smár{
         int Bytes_received;
         int Bytes_Sended;
         bool IsHeaderSended;
-        // void Fill_Request_State_it();
-        
-    private:
+        // ================= String Part ===================
+        std::string resp;
+        // ================= String Part ===================
 };

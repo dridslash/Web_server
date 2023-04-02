@@ -149,17 +149,24 @@ int Server_Eyjafjörður::multiplexing(){
                     }
                     if (it->second->Client_Hamr == Response_Still_Serving) {
                         std::cout << "=================== Write Event =============================" << std::endl;
-                        if (it->second->IsHeaderSended == 0) {
-                            ResponsePath.CheckRequestLine(conf, Request_parser);
-                            ResponsePath.MakeResponse(conf, Request_parser);
-                        }
-                        if (ResponsePath.SendData(it->second)) {
-                            std::map<int,Client_Smár*>::iterator ite = it;
-                            it++;
-                            Delete_Client(ite->second);
-                        }
-                        else
-                            it++;
+                        // ================= String Part ===================
+                        ResponsePath.ResponseFile(it->second->resp, conf, Request_parser);
+                        send(it->second->Client_Socket, it->second->resp.c_str(), it->second->resp.size(), 0);
+                        std::map<int,Client_Smár*>::iterator ite = it;
+                        it++;
+                        Delete_Client(ite->second);
+                        // ================= String Part ===================
+                        // if (it->second->IsHeaderSended == 0) {
+                        //     ResponsePath.CheckRequestLine(conf, Request_parser);
+                        //     ResponsePath.MakeResponse(conf, Request_parser);
+                        // }
+                        // if (ResponsePath.SendData(it->second)) {
+                        //     std::map<int,Client_Smár*>::iterator ite = it;
+                        //     it++;
+                        //     Delete_Client(ite->second);
+                        // }
+                        // else
+                        //     it++;
                     }
                     else
                         it++;
