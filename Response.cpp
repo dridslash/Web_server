@@ -417,11 +417,9 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
         if (StatusCode >= 400)
             HandleErrorPages(config);
     }
-    std::cout << "Here" << std::endl;
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios::end);
     Client->FileLength = Client->binaryFile.tellg();
-    std::cout << Client->FileLength << std::endl;
     Client->binaryFile.seekg(0, Client->binaryFile.beg);
 }
 
@@ -429,7 +427,6 @@ void Response::SendData(Client_Smár* & Client) {
     int S_sended;
     int ReadReturn;
     if (!Client->IsHeaderSended) {
-        std::cout << "Sending Headers..." << std::endl;
         std::string newresp = HTTPVersion;
         newresp.append(" " + std::to_string(StatusCode) + " ");
         newresp.append(getDesc());
@@ -446,23 +443,19 @@ void Response::SendData(Client_Smár* & Client) {
         ReadReturn = newresp.size();
     }
     else {
-        std::cout << "Sending Body... to " << Client->Client_Socket << std::endl;
         Client->binaryFile.read(Client->temp_resp, Max_Writes);
         ReadReturn = Client->binaryFile.gcount();
     }
-    std::cout << "Read: " << ReadReturn << std::endl;
     if (!ReadReturn) {
-        std::cout << "Send Done" << std::endl;
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
         return ;
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (S_sended < 0) {
-        perror("send");
-        exit(EXIT_FAILURE);
+        Client->binaryFile.close();
+        Client->Client_Hamr = Response_Completed;
     }
-    std::cout << "Send: " << S_sended << std::endl;
     Client->IsHeaderSended = true;
     return ;
 }

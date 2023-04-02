@@ -260,7 +260,6 @@ int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_sta
     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
         std::cout << "================ Request Complete =================" << std::endl;
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
-        // Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
         client_request_state->Client_Hamr = Response_Still_Serving;
         }
     }

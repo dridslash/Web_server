@@ -1,7 +1,7 @@
 #pragma once
 #include "header.hpp"
 #define Max_Reads 2048
-#define Max_Writes 2048
+#define Max_Writes 1024
 
 enum Hávamál{
     Still_Reading_Request,
