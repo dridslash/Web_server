@@ -450,6 +450,7 @@ void Response::SendData(Client_Smár* & Client) {
         Client->binaryFile.read(Client->temp_resp, Max_Writes);
         ReadReturn = Client->binaryFile.gcount();
     }
+    std::cout << "Read: " << ReadReturn << std::endl;
     if (!ReadReturn) {
         std::cout << "Send Done" << std::endl;
         Client->binaryFile.close();
@@ -461,6 +462,7 @@ void Response::SendData(Client_Smár* & Client) {
         perror("send");
         exit(EXIT_FAILURE);
     }
+    std::cout << "Send: " << S_sended << std::endl;
     Client->IsHeaderSended = true;
     return ;
 }

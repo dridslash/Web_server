@@ -184,7 +184,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 }
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int fd , int filter){
-    EV_SET(&events[0],fd,filter,EV_ADD | EV_ENABLE ,0,0,NULL);
+    EV_SET(&events[0],fd,filter,EV_ADD ,0,0,NULL);
     kevent(kq,&events[0],1,NULL,0,NULL);
     return (true);
 }
