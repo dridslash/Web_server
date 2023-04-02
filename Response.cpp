@@ -421,6 +421,7 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios::end);
     Client->FileLength = Client->binaryFile.tellg();
+    std::cout << Client->FileLength << std::endl;
     Client->binaryFile.seekg(0, Client->binaryFile.beg);
 }
 
@@ -445,7 +446,7 @@ void Response::SendData(Client_Smár* & Client) {
         ReadReturn = newresp.size();
     }
     else {
-        std::cout << "Sending Body..." << std::endl;
+        std::cout << "Sending Body... to " << Client->Client_Socket << std::endl;
         Client->binaryFile.read(Client->temp_resp, Max_Writes);
         ReadReturn = Client->binaryFile.gcount();
     }

@@ -50,7 +50,7 @@ class Server_Eyjafjörður{
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath);
-        void Drop_clients();
+        int Drop_clients(int flag);
         
     private:
         static int reuse;

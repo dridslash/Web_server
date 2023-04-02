@@ -105,13 +105,13 @@ int Server_Eyjafjörður::multiplexing(){
     Response ResponsePath;
     for (;;) {
         int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,&timeout);
-        // std::cout << "Waiting for Connection" << std::endl;
         if (n_ev < 0){
             perror("kevent");
             exit(EXIT_FAILURE);
         }
         for (int i = 0; i < n_ev ; i++) {
-            if (retrieved_events[i].filter == EVFILT_READ && listeners.find(retrieved_events[i].ident) != listeners.end()){
+            if (retrieved_events[i].filter == EVFILT_READ){
+                if (listeners.find(retrieved_events[i].ident) != listeners.end()){
                 //====================== ACCEPT CONNECTION ========================
                 int client_socket = accept((*listeners.find(retrieved_events[i].ident)),(struct sockaddr *)(&servinfo->ai_addr),
                     reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
@@ -123,23 +123,27 @@ int Server_Eyjafjörður::multiplexing(){
                     CLOSING_SOCKET(client_socket);
                 }
                 std::cout << "Connetion made"<<std::endl;
+                }else {
+                     for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
+                        if (Search_in_Events(it->second->Client_Socket,retrieved_events,n_ev) == READ) {
+                            ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
+                            std::stringstream port_string;
+                            port_string << it->second->Client_Ip_Port_Connected.second;
+                            ResponsePath.setPort(port_string.str());
+                            Fill_Request_State_it(it->second,ResponsePath);
+                        }
+                    }
+                }
             }
-            Client_loop(retrieved_events,n_ev,ResponsePath);
-            
+            else
+                Client_loop(retrieved_events,n_ev,ResponsePath);
         }
     }
 }
 
 
-void Server_Eyjafjörður::Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath){
+void Server_Eyjafjörður::Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath) {
     for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();){
-        if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == READ) {
-            ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
-            std::stringstream port_string;
-            port_string << it->second->Client_Ip_Port_Connected.second;
-            ResponsePath.setPort(port_string.str());
-            Fill_Request_State_it(it->second,ResponsePath);
-        }
         if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE) {
             if (it->second->IsHeaderSended == 0) {
                 ResponsePath.CheckRequestLine(conf, Request_parser);
@@ -159,11 +163,20 @@ void Server_Eyjafjörður::Client_loop(struct kevent *retreived_events, int how_
     }
 }
 
-void Server_Eyjafjörður::Drop_clients(){
-    for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end(); it++){
-        if (it->second->Client_Hamr == Response_Completed)
-            Delete_Client(it->second);
+int Server_Eyjafjörður::Drop_clients(int flag) {
+    if (!flag) {
+        for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end(); it++){
+            if (it->second->Client_Hamr != Response_Completed)
+                return 0;
+        }
+    } else {
+        for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();){
+            std::map<int,Client_Smár*>::iterator ite = it;
+            it++;
+            Delete_Client(ite->second);
+        }
     }
+    return 1;
 }
 
 int Server_Eyjafjörður::Get_Server_Socket()const{
@@ -171,7 +184,7 @@ int Server_Eyjafjörður::Get_Server_Socket()const{
 }
 
 bool Server_Eyjafjörður::Add_Event_to_queue_ker(int fd , int filter){
-    EV_SET(&events[0],fd,filter,EV_ADD | EV_CLEAR,0,0,NULL);
+    EV_SET(&events[0],fd,filter,EV_ADD | EV_ENABLE ,0,0,NULL);
     kevent(kq,&events[0],1,NULL,0,NULL);
     return (true);
 }
