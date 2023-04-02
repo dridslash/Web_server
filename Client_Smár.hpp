@@ -37,7 +37,6 @@ class Client_Smár{
         int Bytes_received;
         int Bytes_Sended;
         bool IsHeaderSended;
-        // ================= String Part ===================
-        std::string resp;
-        // ================= String Part ===================
+        std::ifstream binaryFile;
+        int FileLength;
 };
