@@ -20,11 +20,11 @@ Client_Smár* Client_Smár::Draupnir_Smár(int sockcl){
 
 //-----------------------------------------
 
-Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0) {
+Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
     
 }
 
-Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0) {
+Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
     
 }
 

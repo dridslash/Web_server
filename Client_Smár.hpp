@@ -1,24 +1,13 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Client_Smár.hpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/31 09:24:48 by mnaqqad          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 #include "header.hpp"
-#define Max_Reads 2047
-#define Max_Writes 60000
+#define Max_Reads 2048
+#define Max_Writes 1024
 
 enum Hávamál{
     Still_Reading_Request,
     Request_Completed,
-    Response_Still_Serving
+    Response_Still_Serving,
+    Response_Completed
 };
 
 class Client_Smár{
@@ -32,11 +21,11 @@ class Client_Smár{
         static Client_Smár* Draupnir_Smár(int sockcl);
         void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
-        char Request[Max_Reads + 1];
-        std::string temp_resp;
+        char Request[Max_Reads];
+        char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;
-        // void Fill_Request_State_it();
-        
-    private:
+        bool IsHeaderSended;
+        std::ifstream binaryFile;
+        int FileLength;
 };

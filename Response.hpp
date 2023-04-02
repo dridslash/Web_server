@@ -3,6 +3,7 @@
 
 class Config;
 class Derya_Request;
+class Client_Smár;
 class Response {
     private:
         std::string HTTPMethod;
@@ -44,5 +45,8 @@ class Response {
         std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();
+        int CheckRequestLine(Config config, Derya_Request& request);
+        void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
+        void SendData(Client_Smár* & Client);
 
 };

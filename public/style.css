@@ -1,47 +1,60 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 5em 0;
+*{
+  margin: 0;
   padding: 0;
-  background-color: #f2f2f2;
-  text-align: center;
-  background-color: rgb(174, 174, 174);
+  box-sizing: border-box;
 }
 
-h1 {
-  font-family: monospace;
-  font-size: 5rem;
+body{
+  font-family: "Segoe UI", sans-serif;
+  background: url(bg.png)no-repeat;
+  background-size: cover;
+  height: 100vh;
 }
 
-#num1, #num2 {
-  border-radius: 20px;
-  border: 2px solid #141414;
-  padding: 0.2rem;
-  background: #ffffffb5;
+.container{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
-label {
-  font-style: italic;
-  font-weight: bold;
+.container img{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  object-fit: contain;
 }
 
-select {
-  border-radius: 20px;
-  padding: 0.1rem;
-  background-color: #3a3a3a;
-  color: #f5f5f5;
+.container h2{
+  z-index: 1;
+  position: relative;
+  color: #fff;
+  font-size: 90px;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: 32px;
+  line-height: 60px;
 }
 
-.sumbit {
-  border-radius: 20px;
-  padding: 0.5rem 0.6rem;
-  border-radius: 2px solid #1f1d1d;
-  background-color: #1f1d1d;
-  color: white;
+.container h2 span{
+  font-size: 48px;
+  font-weight: 500;
+  letter-spacing: 10px;
 }
 
-.sumbit:hover {
-  border-radius: 2px solid white;
-  background-color: white;
-  color: #1f1d1d;
-  cursor: pointer;
+@media (max-width:800px){
+  .container h2{
+    font-size: 60px;
+    letter-spacing: 19px;
+    line-height: 35px;
+  }
+
+  .container h2 span{
+    font-size: 26px;
+  }
 }
