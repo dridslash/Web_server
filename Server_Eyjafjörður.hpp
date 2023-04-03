@@ -44,9 +44,8 @@ class Server_Eyjafjörður{
         static Server_Eyjafjörður* Draupnir();
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
-        bool Check_Hamr_Clients();
+        bool Check_Status_Of_Clients();
         int Fill_Request_State_it(Client_Smár* client_request_state);
-        bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Client_loop(struct kevent *retreived_events, int how_many_events);

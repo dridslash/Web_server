@@ -232,8 +232,6 @@ int Response::getResponsePath(Config config, Derya_Request& request) {
         if (CharURI.find(Path[i]) == std::string::npos)
             return 400;
     }
-    if (Path.size() > 2048)// if URI contain more than 2048 chars
-        return 414;
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
@@ -382,7 +380,6 @@ int Response::IfLocationHaveCGI(Config config) {
 }
 
 int Response::CheckRequestLine(Config config, Derya_Request& request) {
-    StatusCode = 200;
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
