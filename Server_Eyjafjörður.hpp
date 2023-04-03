@@ -9,7 +9,7 @@ enum events_check{
     WRITE
 };
 
-class Server_Eyjafjörður{
+class Server_Eyjafjörður {
     public:
         struct addrinfo hints , *servinfo;
         static int kq;
@@ -49,8 +49,8 @@ class Server_Eyjafjörður{
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Client_loop(struct kevent *retreived_events, int how_many_events);
+        void DropClient(std::map<int,Client_Smár*>::iterator& it);
         
     private:
-        static int reuse;
-        
+        static int reuse; 
 };
