@@ -2,6 +2,7 @@
 #include "header.hpp"
 
 class Config;
+class Server_Eyjafjörður;
 class Derya_Request;
 class Client_Smár;
 class Response {
@@ -15,7 +16,6 @@ class Response {
         std::string Host;
         std::string Port;
         std::pair<int, int>* LocationIndex;
-        std::map<std::string, std::string> ContentTypes;
     public:
         Response();
         ~Response();
@@ -42,11 +42,10 @@ class Response {
         int IsDirHaveIndexFiles(Config );
         int IfLocationHaveCGI(Config config);
         void ResponseFile(std::string &, Config, Derya_Request&);
-        std::string getContentType(const char*);
         int RemoveDirectory(std::string);
         std::string getDesc();
         int CheckRequestLine(Config config, Derya_Request& request);
         void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
-        void SendData(Client_Smár* & Client);
+        void SendData(Client_Smár* & Client, Server_Eyjafjörður& Server);
 
 };

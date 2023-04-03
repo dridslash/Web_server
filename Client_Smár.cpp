@@ -38,6 +38,10 @@ void Client_Smár::Set_up_ip_port(){
     getsockname(Client_Socket,(struct sockaddr*)&Own_addr,(socklen_t*)&client_addlen);
     Client_Ip_Port_Connected.first = inet_ntoa(Own_addr.sin_addr);
     Client_Ip_Port_Connected.second = ntohs(Own_addr.sin_port);
+    ResponsePath.setHost(Client_Ip_Port_Connected.first);
+    std::stringstream port_string;
+    port_string << Client_Ip_Port_Connected.second;
+    ResponsePath.setPort(port_string.str());
 }
 
 // void Client_Smár::Fill_Request_State_it(){
