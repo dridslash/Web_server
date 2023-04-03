@@ -2,7 +2,6 @@
 #include "header.hpp"
 #include "ConfigFile.hpp"
 #include "Client_Smár.hpp"
-#include "Request.hpp"
 #include "Response.hpp"
 
 enum events_check{

@@ -127,8 +127,6 @@ int Server_Eyjafjörður::multiplexing(){
     timeout.tv_sec = 1;
     timeout.tv_nsec = 0;
     for (;;) {
-        
-        std::cout << Clients.size() << std::endl;
         int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,&timeout);
         if (n_ev < 0){
             perror("kevent");
@@ -239,7 +237,6 @@ void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
 }
 
 void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
-    // std::cout << "Client Deleted" << std::endl;
     printf("Closing Connection With Client %d\n", client_copy->Client_Socket);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
@@ -265,41 +262,17 @@ int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_sta
     }
     client_request_state->Bytes_received += R_received;
     client_request_state->Request[client_request_state->Bytes_received] = 0;
-    // std::cout << client_request_state->Request << std::endl;
     std::string get_when_ended(client_request_state->Request);
     client_request_state->Request_parser.Parse_Request(client_request_state->Request);
     if (get_when_ended.find("\r\n\r\n") != std::string::npos){
-        printf("\033[0;34mRequest Recived Form Socket %d, Method=<%s>  URI=<%s>\033[0m\n", client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path.c_str());
-        // std::cout << "================ Request Complete =================" << std::endl;
+        printf("\033[0;31mRequest Recived From Socket %d, Method=<%s>  URI=<%s>\033[0m\n", client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path.c_str());
         Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+        Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
         client_request_state->Client_Hamr = Response_Still_Serving;
         }
     }
     return 0;
 }
-
-
-// void Server_Eyjafjörður::Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath){
-//     int S_sended = 0;
-//         std::cout << "=================== Write Event =============================" << std::endl;
-        
-//         //============================ RESPONSE TO BE REFACTORED =======================
-//         if (client_request_state->Client_Hamr == Response_Still_Serving) {
-//         ResponsePath.ResponseFile(client_request_state->temp_resp, conf, Request_parser);
-//         if (client_request_state->Bytes_Sended != client_request_state->temp_resp.size()) {
-//             int Size;
-//             (Max_Writes - client_request_state->Bytes_Sended > client_request_state->temp_resp.size()) ? Size = client_request_state->temp_resp.size() : Size = Max_Writes - client_request_state->Bytes_Sended;
-//             S_sended = send(client_request_state->Client_Socket, client_request_state->temp_resp.c_str() + client_request_state->Bytes_Sended, Size, 0);
-//             if (S_sended < 0) {
-//                 perror("send");
-//                 exit(EXIT_FAILURE);
-//             }
-//             client_request_state->Bytes_Sended += S_sended;
-//         }
-//         else
-//             Delete_Client(client_request_state);
-//         }
-// }
 
 bool Server_Eyjafjörður::Is_in_write_event(int &client_fd,struct kevent *retrieved_events){
     int n_ev = kevent(Server_Eyjafjörður::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
