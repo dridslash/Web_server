@@ -2,20 +2,13 @@
 #include "Derya_Request.hpp"
 #include "ConfigFile.hpp"
 #include "Client_Smár.hpp"
+#include "Server_Eyjafjörður.hpp"
 #include <math.h>
 #include <cstdlib>
 
 
-Response::Response() : StatusCode(200) {
-    std::ifstream myfile("public/mime.types");
-	std::string key, value;
-    if ( myfile.is_open() ) {
-		while ( myfile ) {
-			myfile >> value >> key;
-			ContentTypes.insert(std::make_pair(key, value));
-		}
-	}
-}
+Response::Response() : StatusCode(200) {}
+
 Response::~Response() {}
 
 std::string Response::getHTTPMethod() const {
@@ -417,18 +410,16 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
         if (StatusCode >= 400)
             HandleErrorPages(config);
     }
-    std::cout << "Here" << std::endl;
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios::end);
     Client->FileLength = Client->binaryFile.tellg();
     Client->binaryFile.seekg(0, Client->binaryFile.beg);
 }
 
-void Response::SendData(Client_Smár* & Client) {
+void Response::SendData(Client_Smár* & Client, Server_Eyjafjörður& Server) {
     int S_sended;
     int ReadReturn;
     if (!Client->IsHeaderSended) {
-        std::cout << "Sending Headers..." << std::endl;
         std::string newresp = HTTPVersion;
         newresp.append(" " + std::to_string(StatusCode) + " ");
         newresp.append(getDesc());
@@ -436,7 +427,7 @@ void Response::SendData(Client_Smár* & Client) {
             newresp.append("Location: " + Path);
         } else {
             newresp.append("Content-Type: ");
-            newresp.append(getContentType(Path.c_str()));
+            newresp.append(Server.getContentType(Path.c_str()));
             newresp.append("\r\nContent-Length: ");
             newresp.append(std::to_string(Client->FileLength));
         }
@@ -445,67 +436,17 @@ void Response::SendData(Client_Smár* & Client) {
         ReadReturn = newresp.size();
     }
     else {
-        std::cout << "Sending Body..." << std::endl;
         Client->binaryFile.read(Client->temp_resp, Max_Writes);
         ReadReturn = Client->binaryFile.gcount();
     }
-    if (!ReadReturn) {
-        std::cout << "Send Done" << std::endl;
+    S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
+    if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
+        printf("\033[0;36mResponse Sent To Socket %d, Stats=<%d>  Path=<%s>\033[0m\n", Client->Client_Socket, StatusCode, Path.c_str());
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
-        return ;
-    }
-    S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
-    if (S_sended < 0) {
-        perror("send");
-        exit(EXIT_FAILURE);
     }
     Client->IsHeaderSended = true;
     return ;
-}
-
-// void Response::ResponseFile(std::string & resp, Config config, Derya_Request& requestFile) {
-//     std::string newresp;
-//     StatusCode = getResponsePath(config, requestFile);
-// 	if (StatusCode >= 400)
-// 		HandleErrorPages(config);
-//     resp = HTTPVersion;
-//     resp.append(" " + std::to_string(StatusCode) + " ");
-//     resp.append(getDesc());
-//     if (StatusCode == 301) {
-//         resp.append("Location: " + Path);
-//         resp.append("\r\n\r\n");
-//     }
-//     else {
-//         newresp.append("Server: webserv\r\n");
-//         newresp.append("Content-Length: ");
-//         std::ifstream in_file(Path.c_str());
-//         in_file.seekg(0, std::ios::end);
-//         newresp.append(std::to_string(in_file.tellg()));
-//         resp.append("\r\nContent-Type: ");
-//         // resp.append("Content-Type: ");
-//         resp.append(getContentType(Path.c_str()));
-//         resp.append("\r\n");
-//         std::ifstream myfile(Path.c_str());
-//         if ( myfile.is_open() ) {
-//             resp.append("\r\n");
-//             std::getline(myfile, newresp);
-//             while ( !myfile.eof() ) {
-//                 resp.append(newresp);
-//                 resp.append("\r\n");
-//                 std::getline(myfile, newresp);
-//             }
-//         }
-//     }
-// }
-
-
-std::string Response::getContentType(const char* resp) {
-	std::string Default = "application/octet-stream";
-	std::map<std::string, std::string>::iterator formula = ContentTypes.find(strrchr(resp, '.'));
-	if (formula != ContentTypes.end())
-		return formula->second;
-	return Default;
 }
 
 std::string Response::getDesc() {

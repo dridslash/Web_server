@@ -4,7 +4,6 @@
 #include "Client_Smár.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include "Derya_Request.hpp"
 
 enum events_check{
     READ,
@@ -16,9 +15,9 @@ class Server_Eyjafjörður{
         struct addrinfo hints , *servinfo;
         static int kq;
         static Config conf;
+        std::map<std::string, std::string> ContentTypes;
         std::set<unsigned long>listeners;
-        std::map<int,Client_Smár*>Clients;
-        static Derya_Request Request_parser;
+        std::map<int, Client_Smár*>Clients;
         std::set<struct kevent*>events_register;
         struct kevent retrieved_events[MAX_CONNECTIONS];
         struct kevent changelist[MAX_CONNECTIONS];
@@ -31,6 +30,7 @@ class Server_Eyjafjörður{
         Server_Eyjafjörður();
         ~Server_Eyjafjörður();
         Server_Eyjafjörður(int sk,const char *port);
+        std::string getContentType(const char*);
         void Upp_ports(char *Config_file);
         void Set_up_listeners(const char *port);
         int multiplexing();
@@ -45,12 +45,11 @@ class Server_Eyjafjörður{
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
         bool Check_Hamr_Clients();
-        int Fill_Request_State_it(Client_Smár* client_request_state, Response& ResponsePath);
+        int Fill_Request_State_it(Client_Smár* client_request_state);
         bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
-        void Client_loop(struct kevent *retreived_events, int how_many_events,Response& ResponsePath);
-        void Drop_clients();
+        void Client_loop(struct kevent *retreived_events, int how_many_events);
         
     private:
         static int reuse;
