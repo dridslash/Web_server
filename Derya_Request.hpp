@@ -12,9 +12,7 @@
 
 #pragma once
 
-
 #include "header.hpp"
-
 
 class Derya_Request{
     public:

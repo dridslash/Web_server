@@ -21,6 +21,8 @@
 #include <dirent.h>
 #include <libgen.h>
 #include <limits.h>
+#include <math.h>
+#include <cstdlib>
 
 #define BUFFER_SIZE 1024
 #define MAX_CONNECTIONS 1024

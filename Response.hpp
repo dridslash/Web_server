@@ -46,6 +46,6 @@ class Response {
         std::string getDesc();
         int CheckRequestLine(Config config, Derya_Request& request);
         void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
-        void SendData(Client_Smár* & Client, Server_Eyjafjörður& Server);
+        void SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server);
 
 };
