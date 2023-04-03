@@ -446,13 +446,8 @@ void Response::SendData(Client_Smár* & Client) {
         Client->binaryFile.read(Client->temp_resp, Max_Writes);
         ReadReturn = Client->binaryFile.gcount();
     }
-    if (!ReadReturn) {
-        Client->binaryFile.close();
-        Client->Client_Hamr = Response_Completed;
-        return ;
-    }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
-    if (S_sended < 0) {
+    if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
     }

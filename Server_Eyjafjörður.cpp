@@ -62,6 +62,10 @@ void Server_Eyjafjörður::Set_up_listeners(const char *port){
         perror("Setsockopt Error");
         exit(EXIT_FAILURE);
     }
+    if (setsockopt(Server_Socket,SOL_SOCKET,SO_NOSIGPIPE,&reuse,sizeof(reuse)) < 0){
+        perror("Setsockopt Error");
+        exit(EXIT_FAILURE);
+    }
     
     Change_Socket_To_Non_Block(Server_Socket);
     
@@ -124,14 +128,23 @@ int Server_Eyjafjörður::multiplexing(){
                 }
                 std::cout << "Connetion made"<<std::endl;
                 }else {
-                     for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();it++){
+                     for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();){
                         if (Search_in_Events(it->second->Client_Socket,retrieved_events,n_ev) == READ) {
                             ResponsePath.setHost(it->second->Client_Ip_Port_Connected.first);
                             std::stringstream port_string;
                             port_string << it->second->Client_Ip_Port_Connected.second;
                             ResponsePath.setPort(port_string.str());
-                            Fill_Request_State_it(it->second,ResponsePath);
+                            if (Fill_Request_State_it(it->second,ResponsePath)) {
+                                std::map<int,Client_Smár*>::iterator ite = it;
+                                it++;
+                                std::cout << "Delete in Read Event" << std::endl;
+                                Delete_Client(ite->second);
+                            }
+                            else
+                                it++;
                         }
+                        else
+                            it++;
                     }
                 }
             }

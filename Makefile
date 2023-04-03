@@ -9,6 +9,12 @@ $(NAME):   $(SC_VEC)
 	@$(GCC) $(SRC) -o $(NAME)
 	@echo "\033[1;35m▐▌ DONE ▐▌"
 
+run: re
+	@ ./$(NAME) ConfigFile.conf
+
+launch: all
+	@ ./$(NAME) ConfigFile.conf
+
 clean:
 	@$(RM)
 
