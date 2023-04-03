@@ -1,5 +1,7 @@
 #pragma once
 #include "header.hpp"
+#include "Response.hpp"
+#include "Derya_Request.hpp"
 #define Max_Reads 2048
 #define Max_Writes 1024
 
@@ -13,6 +15,8 @@ enum Hávamál{
 class Client_Smár{
     public:
         Hávamál Client_Hamr;
+        Response ResponsePath;
+        Derya_Request Request_parser;
         Client_Smár();
         Client_Smár(int sockcl);
         ~Client_Smár();
