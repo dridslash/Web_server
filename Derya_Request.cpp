@@ -12,7 +12,6 @@
 
 #include "Derya_Request.hpp"
 
-
 Derya_Request::Derya_Request(){}
 
 Derya_Request::~Derya_Request(){}

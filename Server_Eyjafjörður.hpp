@@ -2,7 +2,6 @@
 #include "header.hpp"
 #include "ConfigFile.hpp"
 #include "Client_Smár.hpp"
-#include "Request.hpp"
 #include "Response.hpp"
 
 enum events_check{
@@ -10,7 +9,7 @@ enum events_check{
     WRITE
 };
 
-class Server_Eyjafjörður{
+class Server_Eyjafjörður {
     public:
         struct addrinfo hints , *servinfo;
         static int kq;
@@ -44,13 +43,14 @@ class Server_Eyjafjörður{
         static Server_Eyjafjörður* Draupnir();
         void Add_Client(Client_Smár *client_copy);
         void Delete_Client(Client_Smár *client_copy);
-        bool Check_Status_Of_Clients();
+        bool Check_Hamr_Clients();
         int Fill_Request_State_it(Client_Smár* client_request_state);
+        bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Smár* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Client_loop(struct kevent *retreived_events, int how_many_events);
+        void DropClient(std::map<int,Client_Smár*>::iterator& it);
         
     private:
-        static int reuse;
-        
+        static int reuse; 
 };
