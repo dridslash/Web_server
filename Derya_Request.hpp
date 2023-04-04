@@ -25,7 +25,7 @@ class Derya_Request{
     std::map<std::string,std::string> RequestHeader;
 
     //FUNCTION PARSING REQUEST
-    void Parse_Request(char *Request);
+    void Parse_Request(std::string Request);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);

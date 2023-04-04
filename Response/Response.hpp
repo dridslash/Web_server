@@ -1,5 +1,5 @@
 #pragma once
-#include "header.hpp"
+#include "../header.hpp"
 
 class Config;
 class Server_Eyjafjörður;

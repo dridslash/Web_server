@@ -1,6 +1,6 @@
 #pragma once
 #include "header.hpp"
-#include "Response.hpp"
+#include "Response/Response.hpp"
 #include "Derya_Request.hpp"
 #define Max_Reads 2048
 #define Max_Writes 1024
@@ -25,7 +25,8 @@ class Client_Smár{
         static Client_Smár* Draupnir_Smár(int sockcl);
         void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
-        char Request[Max_Reads];
+        // char Request[Max_Reads];
+        std::string Request;
         char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;

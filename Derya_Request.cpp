@@ -16,7 +16,7 @@ Derya_Request::Derya_Request(){}
 
 Derya_Request::~Derya_Request(){}
 
-void Derya_Request::Parse_Request(char *Request){
+void Derya_Request::Parse_Request(std::string Request){
     std::stringstream get_Request;
     get_Request << Request;
     //============= GETTING REQUEST LINE =================

@@ -1,8 +1,8 @@
 #pragma once
 #include "header.hpp"
-#include "ConfigFile.hpp"
+#include "Config/ConfigFile.hpp"
 #include "Client_Smár.hpp"
-#include "Response.hpp"
+#include "Response/Response.hpp"
 
 enum events_check{
     READ,

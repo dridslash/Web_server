@@ -1,8 +1,8 @@
 #include "Response.hpp"
-#include "Derya_Request.hpp"
-#include "ConfigFile.hpp"
-#include "Client_Smár.hpp"
-#include "Server_Eyjafjörður.hpp"
+#include "../Derya_Request.hpp"
+#include "../Config/ConfigFile.hpp"
+#include "../Client_Smár.hpp"
+#include "../Server_Eyjafjörður.hpp"
 
 Response::Response() : StatusCode(200) {}
 Response::~Response() {}

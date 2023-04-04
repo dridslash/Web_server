@@ -241,15 +241,14 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 }
 
 
-int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state){
+int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state) {
+    char buffer[Max_Reads + 1];
     if (client_request_state->Client_Hamr == Still_Reading_Request) {
-        int R_received = recv(client_request_state->Client_Socket,
-            client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
-        if (R_received <= 0)
-            return 1;
-        client_request_state->Bytes_received += R_received;
-        client_request_state->Request[client_request_state->Bytes_received] = 0;
-        std::string get_when_ended(client_request_state->Request);
+        int R_received = recv(client_request_state->Client_Socket, buffer, Max_Reads, 0);
+        if (R_received <= 0) return 1;
+        buffer[R_received] = 0;
+        std::string get_when_ended(buffer);
+        client_request_state->Request.append(buffer);
         client_request_state->Request_parser.Parse_Request(client_request_state->Request);
         if (get_when_ended.find("\r\n\r\n") != std::string::npos) {
             printf("\033[0;31mRequest Recived From Socket %d, Method=<%s>  URI=<%s>\033[0m\n", client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path.c_str());

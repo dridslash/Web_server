@@ -1,6 +1,6 @@
 #pragma once
 
-#include "header.hpp"
+#include "../header.hpp"
 
 class LocationBlocks {
     public:
