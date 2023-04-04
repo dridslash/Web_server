@@ -284,7 +284,7 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
-        printf("\033[0;36mResponse Sent To Socket %d, Stats=<%d>  Path=<%s>\033[0m\n", Client->Client_Socket, StatusCode, Path.c_str());
+        Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
     }

@@ -50,6 +50,7 @@ class Server_Eyjafjörður {
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Client_loop(struct kevent *retreived_events, int how_many_events);
         void DropClient(std::map<int,Client_Smár*>::iterator& it);
+        void PrintStatus(int fd = 0, const char* HTTPMethod = 0, std::string Path = std::string(), int StatusCode = 0, int flag = 0);
         
     private:
         static int reuse; 
