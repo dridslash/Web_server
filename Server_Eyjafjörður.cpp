@@ -116,7 +116,7 @@ void Server_Eyjafjörður::Upp_ports(char *Config_file){
     }
     conf.ConfigParse(Config_file);
     int MAX_PORTS = conf.Ports.size();
-    std::cout << "Initializing Servers..." << std::endl;
+    PrintStatus();
    for(std::set<std::string>::iterator it = conf.Ports.begin();it != conf.Ports.end();it++)
         Set_up_listeners((*it).c_str());
 }
@@ -139,7 +139,7 @@ int Server_Eyjafjörður::multiplexing(){
                     reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
                 Client_Smár *client_copy = new Client_Smár(client_socket);
                 if (client_socket < 0) CLOSING_SOCKET(client_socket);
-                std::cout << "New Connection, Assigned Socket " << client_socket << std::endl;
+                PrintStatus(client_socket);
                 Add_Client(client_copy);
                 } else {
                      for(std::map<int,Client_Smár*>::iterator it = Clients.begin(); it != Clients.end();) {
@@ -198,7 +198,6 @@ bool Server_Eyjafjörður::Enable_Event_from_queue_ker(int &fd , int filter){
     struct kevent event[1];
     EV_SET(&event[0],fd,filter,EV_ENABLE ,0,0,NULL);
     kevent(kq,event,1,NULL,0,NULL);
-    
     return (true);
 }
 
@@ -225,7 +224,7 @@ void Server_Eyjafjörður::Add_Client(Client_Smár *client_copy){
 }
 
 void Server_Eyjafjörður::Delete_Client(Client_Smár *client_copy){
-    printf("Closing Connection With Client %d\n", client_copy->Client_Socket);
+    PrintStatus(client_copy->Client_Socket);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     Delete_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_WRITE);
     CLOSING_SOCKET(client_copy->Client_Socket);
@@ -241,18 +240,17 @@ bool Server_Eyjafjörður::Check_Hamr_Clients(){
 }
 
 
-int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state){
+int Server_Eyjafjörður::Fill_Request_State_it(Client_Smár* client_request_state) {
+    char buffer[Max_Reads + 1];
     if (client_request_state->Client_Hamr == Still_Reading_Request) {
-        int R_received = recv(client_request_state->Client_Socket,
-            client_request_state->Request + client_request_state->Bytes_received,Max_Reads - client_request_state->Bytes_received,0);
-        if (R_received <= 0)
-            return 1;
-        client_request_state->Bytes_received += R_received;
-        client_request_state->Request[client_request_state->Bytes_received] = 0;
-        std::string get_when_ended(client_request_state->Request);
+        int R_received = recv(client_request_state->Client_Socket, buffer, Max_Reads, 0);
+        if (R_received <= 0) return 1;
+        buffer[R_received] = 0;
+        std::string get_when_ended(buffer);
+        client_request_state->Request.append(buffer);
         client_request_state->Request_parser.Parse_Request(client_request_state->Request);
         if (get_when_ended.find("\r\n\r\n") != std::string::npos) {
-            printf("\033[0;31mRequest Recived From Socket %d, Method=<%s>  URI=<%s>\033[0m\n", client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path.c_str());
+            PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
             Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
             Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
             client_request_state->Client_Hamr = Response_Still_Serving;
@@ -282,4 +280,25 @@ int Server_Eyjafjörður::Search_in_Events(int fd, struct kevent *retrieved_even
         }
     }
     return -1;
+}
+
+void Server_Eyjafjörður::PrintStatus(int fd, const char* HTTPMethod, std::string Path, int StatusCode, int flag) {
+    if (HTTPMethod) {
+        printf("\033[0;31m     [ Request  ]     [INFO]          Request Recived From Socket %d, Method=<%s>  URI=<%s", fd, HTTPMethod, Path.substr(0, 25).c_str());
+        if (Path.size() > 25) printf("...");
+        printf(">\n\033[0m");
+    }
+    else if (StatusCode) {
+        printf("\033[0;36m     [ Response ]     [INFO]          Response Sent To Socket %d, Stats=<%d>  Path=<%s", fd, StatusCode, Path.substr(0, 25).c_str());
+        if (Path.size() > 25) printf("...");
+        printf(">\n\033[0m");
+    }
+    else if (fd) {
+        if (!flag)
+            std::cout << "     [Connection]     [INFO]          New Connection, Assigned Socket " << fd << std::endl;
+        else
+            printf("     [Connection]     [INFO]          Closing Connection With Client %d\n", fd);
+    }
+    else
+        std::cout << "     [  Server  ]     [INFO]          Initializing Servers..." << std::endl;
 }

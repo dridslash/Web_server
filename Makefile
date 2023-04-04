@@ -1,6 +1,6 @@
 NAME    =	Webserv
 
-SRC    =	*.cpp
+SRC    =	*.cpp Response/*.cpp Config/*.cpp
 
 GCC		=	c++ -fsanitize=address -g #-Wall -Wextra -Werror -std=c++98
 
@@ -10,10 +10,10 @@ $(NAME):   $(SC_VEC)
 	@echo "\033[1;35m▐▌ DONE ▐▌"
 
 run: re
-	@ ./$(NAME) ConfigFile.conf
+	@ ./$(NAME) Config/ConfigFile.conf
 
 launch: all
-	@ ./$(NAME) ConfigFile.conf
+	@ ./$(NAME) Config/ConfigFile.conf
 
 clean:
 	@$(RM)

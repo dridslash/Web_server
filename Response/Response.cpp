@@ -1,8 +1,8 @@
 #include "Response.hpp"
-#include "Derya_Request.hpp"
-#include "ConfigFile.hpp"
-#include "Client_Smár.hpp"
-#include "Server_Eyjafjörður.hpp"
+#include "../Derya_Request.hpp"
+#include "../Config/ConfigFile.hpp"
+#include "../Client_Smár.hpp"
+#include "../Server_Eyjafjörður.hpp"
 
 Response::Response() : StatusCode(200) {}
 Response::~Response() {}
@@ -253,9 +253,8 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
             HandleErrorPages(config);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
-    Client->binaryFile.ignore( std::numeric_limits<std::streamsize>::max() );
-    Client->FileLength = Client->binaryFile.gcount();
-    Client->binaryFile.clear();
+    Client->binaryFile.seekg(0, std::ios_base::end);
+    Client->FileLength = Client->binaryFile.tellg();
     Client->binaryFile.seekg(0, std::ios_base::beg);
 }
 
@@ -284,7 +283,7 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
-        printf("\033[0;36mResponse Sent To Socket %d, Stats=<%d>  Path=<%s>\033[0m\n", Client->Client_Socket, StatusCode, Path.c_str());
+        Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
     }
