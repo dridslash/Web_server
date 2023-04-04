@@ -60,9 +60,6 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 }
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
-    LocationIndex = new std::pair<int, int>(-1, -1);
-    HTTPVersion = request.HTTPVersion;
-
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
@@ -218,6 +215,7 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
+    HTTPVersion = request.HTTPVersion;
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
         if (CharURI.find(Path[i]) == std::string::npos) {
