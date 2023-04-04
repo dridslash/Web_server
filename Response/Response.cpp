@@ -61,23 +61,13 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
-    Path = request.Path;
-    HTTPMethod = request.HTTPMethod;
     HTTPVersion = request.HTTPVersion;
-    RequestHeader = request.RequestHeader;
-    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
     if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
-    for (std::string::size_type i = 0; i < Path.size(); i++) {// if request uri contain a character not allowed
-        if (CharURI.find(Path[i]) == std::string::npos)
-            return 400;
-    }
-    if (Path.size() > 2048)// if URI contain more than 2048 chars
-        return 414;
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
@@ -228,7 +218,6 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
-    HTTPVersion = request.HTTPVersion;
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
         if (CharURI.find(Path[i]) == std::string::npos) {
