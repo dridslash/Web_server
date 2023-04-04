@@ -253,9 +253,8 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
             HandleErrorPages(config);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
-    Client->binaryFile.ignore( std::numeric_limits<std::streamsize>::max() );
-    Client->FileLength = Client->binaryFile.gcount();
-    Client->binaryFile.clear();
+    Client->binaryFile.seekg(0, std::ios_base::end);
+    Client->FileLength = Client->binaryFile.tellg();
     Client->binaryFile.seekg(0, std::ios_base::beg);
 }
 
