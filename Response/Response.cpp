@@ -1,8 +1,8 @@
 #include "Response.hpp"
-#include "Derya_Request.hpp"
-#include "ConfigFile.hpp"
-#include "Client_Smár.hpp"
-#include "Server_Eyjafjörður.hpp"
+#include "../Derya_Request.hpp"
+#include "../Config/ConfigFile.hpp"
+#include "../Client_Smár.hpp"
+#include "../Server_Eyjafjörður.hpp"
 
 Response::Response() : StatusCode(200) {}
 Response::~Response() {}
@@ -61,23 +61,13 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 
 int Response::getResponsePath(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
-    Path = request.Path;
-    HTTPMethod = request.HTTPMethod;
     HTTPVersion = request.HTTPVersion;
-    RequestHeader = request.RequestHeader;
-    std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
     if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
-    for (std::string::size_type i = 0; i < Path.size(); i++) {// if request uri contain a character not allowed
-        if (CharURI.find(Path[i]) == std::string::npos)
-            return 400;
-    }
-    if (Path.size() > 2048)// if URI contain more than 2048 chars
-        return 414;
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
@@ -228,7 +218,6 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
     LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
-    HTTPVersion = request.HTTPVersion;
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
         if (CharURI.find(Path[i]) == std::string::npos) {
@@ -253,9 +242,10 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
             HandleErrorPages(config);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
-    Client->binaryFile.ignore( std::numeric_limits<std::streamsize>::max() );
-    Client->FileLength = Client->binaryFile.gcount();
-    Client->binaryFile.clear();
+    // Client->binaryFile.ignore();
+    // Client->FileLength = Client->binaryFile.gcount();
+    Client->binaryFile.seekg(0, std::ios_base::end);
+    Client->FileLength = Client->binaryFile.tellg();
     Client->binaryFile.seekg(0, std::ios_base::beg);
 }
 
@@ -284,7 +274,7 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
-        printf("\033[0;36mResponse Sent To Socket %d, Stats=<%d>  Path=<%s>\033[0m\n", Client->Client_Socket, StatusCode, Path.c_str());
+        Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
     }
