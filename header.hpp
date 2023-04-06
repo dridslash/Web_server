@@ -3,6 +3,7 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #include <map>
+#include <array>
 #include <utility>
 #include <list>
 #include <set>
@@ -16,5 +17,15 @@
 #include <string>
 #include <fcntl.h>
 #include <cstdio>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <libgen.h>
+#include <limits.h>
+#include <math.h>
+#include <cstdlib>
 
 #define BUFFER_SIZE 1024
+#define MAX_CONNECTIONS 1024
+
+#define Dvergmál(a) std::cout << a << std::endl;
+#define CLOSING_SOCKET(s) close(s)
