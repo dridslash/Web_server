@@ -1,19 +1,20 @@
 #include "ConfigFile.hpp"
 
 LocationBlocks::LocationBlocks() : AutoIndex("off") {
-     httpmethods = new std::vector<std::string>();
+    httpmethods = new std::vector<std::string>();
     index = new std::vector<std::string>();
     try_files = new std::vector<std::string>();
     Return = new std::vector<std::string>();
     CGI = new std::map<std::string, std::string>();
 }
 
-// LocationBlocks::~LocationBlocks() {
-//     delete httpmethods;
-//     delete index;
-//     delete try_files;
-//     delete Return;
-// }
+LocationBlocks::~LocationBlocks() {
+    delete httpmethods;
+    delete index;
+    delete try_files;
+    delete Return;
+    delete CGI;
+}
 
 void LocationBlocks::setAutoIndex(std::string str) { AutoIndex = str; }
 void LocationBlocks::setRoot(std::string str) { root = str; }
@@ -87,7 +88,6 @@ Config::ErrorBox    Config::ServerBlock(ServerBlocks & server, std::vector<std::
             k++;
         }
     }
-    // delete location;
     return std::make_pair(std::make_pair("NO", "ERROR"), 0);
 }
 

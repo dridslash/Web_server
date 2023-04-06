@@ -1,32 +1,32 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f2f2f2;
-  }
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
   
-  h1 {
-    text-align: center;
-    margin-top: 50px;
-  }
+h1 {
+  text-align: center;
+  margin-top: 50px;
+}
   
-  p {
-    text-align: center;
-    margin-top: 20px;
-  }
+p {
+  text-align: center;
+  margin-top: 20px;
+}
   
-  button {
-    display: block;
-    margin: 50px auto;
-    padding: 10px 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4CAF50;
-    color: white;
-  }
+button {
+  display: block;
+  margin: 50px auto;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: white;
+}
   
-  button:hover {
-    cursor: pointer;
-    background-color: #3e8e41;
-  }
+button:hover {
+  cursor: pointer;
+  background-color: #3e8e41;
+}

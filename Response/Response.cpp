@@ -4,8 +4,8 @@
 #include "../Client_Smár.hpp"
 #include "../Server_Eyjafjörður.hpp"
 
-Response::Response() : StatusCode(200) {}
-Response::~Response() {}
+Response::Response() : StatusCode(200) { LocationIndex = new std::pair<int, int>(-1, -1); }
+Response::~Response() { delete LocationIndex; }
 std::string Response::getHTTPMethod() const { return HTTPMethod; }
 std::string Response::getPath() const { return Path; }
 std::string Response::getHTTPVersion() const { return HTTPVersion; }
@@ -29,6 +29,10 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
     }
     // get the Server that most matching the request
     for (std::map<int, ServerBlocks>::iterator it = ServersThatMatchThePort.begin(); it != ServersThatMatchThePort.end(); it++) {
+        if (it->second.ServerName == "localhost" && Host == "127.0.0.1") {
+            ServerThatMatchIndex = it->first;
+            break;
+        }
         if (it->second.ServerName == Host || ServersThatMatchThePort.size() == 1) {
             ServerThatMatchIndex = it->first;
             break;
@@ -70,6 +74,7 @@ int Response::getResponsePath(Config config, Derya_Request& request) {
     // int file_size = in_file.tellg();
     // if (file_size > stoi(config.MaxBodySize))// Request Body too large
     //     return 413;
+    delete LocationIndex;
     LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(config));
     if (LocationIndex->first == -1) // Location not found (Client Error)
         return 404;
@@ -154,68 +159,11 @@ int Response::IsDirHaveIndexFiles(Config config) {
     return 403;
 }
 
-int Response::IfLocationHaveCGI(Config config) {
-    // char PATH_INFO[PATH_MAX];
-    // std::string PathInfo;
-    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->size() == 0) return 0;
-    // if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("php") != config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->end()
-    //     && Path.find(".php") != std::string::npos) {
-    //         PathInfo = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("php")->second;
-    // }
-    // else if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("cgi") != config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->end()
-    //     && Path.find(".cgi") != std::string::npos) {
-    //         PathInfo = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->CGI->find("cgi")->second;
-    // }
-    // std::cout << PathInfo << std::endl;
-    // char* res = realpath(PathInfo.c_str(), PATH_INFO);
-    // if (!res) {
-    //     perror("realpath");
-    //     exit(EXIT_FAILURE);
-    // }
-    // std::cout << PATH_INFO << std::endl;
-    std::ofstream f("public/cgiOutput.html");
-    int InputFile = open("Body.txt", O_RDONLY, 0777);
-    int fd[2];
-    pipe(fd);
-    pid_t c_pid = fork();
-    if (c_pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if (c_pid == 0) {
-        dup2(fd[1], 1);
-        dup2(InputFile, 0);
-        
-        // setenv("QUERY_STRING", QueryString.c_str(), 0);
-        // setenv("REQUEST_METHOD", HTTPMethod.c_str(), 0);
-        // char *env[] = {"PATH_INFO=/Users/oouazize/Desktop/webserv/php-cgi", NULL};
-        // setenv("REDIRECT_STATUS", "200", 0);
-        // setenv("PATH_INFO", "Users/oouazize/Desktop/webserv/php-cgi", 0);
-        // setenv("CONTENT_LENGTH", "1024", 0);
-        // setenv("PATH_INFO", PATH_INFO, 0);
-        extern char** environ;
-        // char *PATH = strcpy(PATH, Path.c_str());
-        // char *args[] = {"/Users/oouazize/Desktop/webserv/php-cgi", "public/index.php", NULL};
-        // execve(args[0], args, env);
-        perror("execve");
-        exit(EXIT_FAILURE);
-    }
-    char buffer[100000];
-    int r = read(fd[0], buffer, 10000);
-    buffer[r] = '\0';
-    close(fd[1]);
-    Path = "public/cgiOutput.html";
-    close(fd[0]);
-    StatusCode = 200;
-    return 1;
-}
-
 int Response::CheckRequestLine(Config config, Derya_Request& request) {
-    StatusCode = 200;
-    LocationIndex = new std::pair<int, int>(-1, -1);
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
     HTTPVersion = request.HTTPVersion;
+    RequestHeader = request.RequestHeader;
     std::string CharURI = "ABCDEFGHIJKLMNOPQRSTUVWXZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     for (std::string::size_type i = 0; i < Path.size(); i++) { // if request uri contain a character not allowed
         if (CharURI.find(Path[i]) == std::string::npos) {
@@ -227,7 +175,7 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
         StatusCode = 414;
     int Method = (HTTPMethod == "GET") * 1 + (HTTPMethod == "POST") * 2 + (HTTPMethod == "DELETE") * 3;
     if (StatusCode == 200 && Method == 0)
-        StatusCode = 405;
+        StatusCode = 400;
     if (StatusCode != 200)
         HandleErrorPages(config);
     return StatusCode;
@@ -236,6 +184,7 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
 void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile) {
     if (StatusCode == 200) {
         StatusCode = getResponsePath(config, requestFile);
+        if (StatusCode == -1) return;
         if (StatusCode >= 400)
             HandleErrorPages(config);
     }
@@ -252,8 +201,12 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
         std::string newresp = HTTPVersion;
         newresp.append(" " + std::to_string(StatusCode) + " ");
         newresp.append(getDesc());
-        if (StatusCode == 301) {
+        if (StatusCode == 301) 
             newresp.append("Location: " + Path);
+        else if (Header.size()) {
+            newresp.append(Header);
+            newresp.append("\r\nContent-Length: ");
+            newresp.append(std::to_string(Client->FileLength));
         } else {
             newresp.append("Content-Type: ");
             newresp.append(Server.getContentType(Path.c_str()));

@@ -12,14 +12,16 @@ class Response {
         std::string HTTPVersion;
         std::string QueryString;
         std::ofstream Body;
+        std::map<std::string,std::string> RequestHeader;
         int StatusCode;
         std::string Host;
         std::string Port;
         std::pair<int, int>* LocationIndex;
+        std::string Header;
+        std::ofstream File;
     public:
         Response();
         ~Response();
-        std::map<std::string, std::string> RequestHeader;
         std::string getHTTPMethod() const;
         std::string getHTTPVersion() const;
         std::string getQueryString() const;
@@ -47,5 +49,6 @@ class Response {
         int CheckRequestLine(Config config, Derya_Request& request);
         void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
         void SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server);
+        int ParseCgiOutput(char* buffer);
 
 };

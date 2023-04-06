@@ -14,9 +14,7 @@
 
 //--------------STATIC_METHODES------------
 
-Client_Smár* Client_Smár::Draupnir_Smár(int sockcl){
-        return (new Client_Smár(sockcl));
-    }
+Client_Smár* Client_Smár::Draupnir_Smár(int sockcl) { return (new Client_Smár(sockcl)); }
 
 //-----------------------------------------
 
