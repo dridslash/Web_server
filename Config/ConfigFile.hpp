@@ -5,7 +5,7 @@
 class LocationBlocks {
     public:
     LocationBlocks();
-    //~LocationBlocks();
+    ~LocationBlocks();
     std::string                 path;
     std::string                 root;
     std::string                 AutoIndex;

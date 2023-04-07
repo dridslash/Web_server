@@ -12,20 +12,19 @@ enum Hávamál {
     Response_Completed
 };
 
-class Client_Smár{
+class Client_Gymir{
     public:
         Hávamál Client_Hamr;
         Response ResponsePath;
         Derya_Request Request_parser;
-        Client_Smár();
-        Client_Smár(int sockcl);
-        ~Client_Smár();
+        Client_Gymir();
+        Client_Gymir(int sockcl);
+        ~Client_Gymir();
         int Client_Socket;
         struct sockaddr_in Own_addr;
-        static Client_Smár* Draupnir_Smár(int sockcl);
+        static Client_Gymir* Draupnir_Smár(int sockcl);
         void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
-        // char Request[Max_Reads];
         std::string Request;
         char temp_resp[Max_Writes];
         int Bytes_received;
@@ -33,4 +32,10 @@ class Client_Smár{
         bool IsHeaderSended;
         std::ifstream binaryFile;
         int FileLength;
+        int fd[2];
+        char Arg0[PATH_MAX];
+        char realPATH[PATH_MAX];
+        char *PathInfo;
+        pid_t c_pid;
+        bool IsCGI;
 };
