@@ -168,7 +168,6 @@ void Server_Master::DropClient(std::map<int,Client_Gymir*>::iterator& it) {
 
 
 void Server_Master::Client_loop(struct kevent *retreived_events, int how_many_events) {
-    // std::cout << "Write event" << std::endl;
     for(std::map<int,Client_Gymir*>::iterator it = Clients.begin(); it != Clients.end();){
         if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE) {
             if (it->second->IsHeaderSended == 0) {
