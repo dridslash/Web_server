@@ -24,8 +24,7 @@ void Derya_Request::Parse_Request(std::string Request){
     while(get_Request){
         std::string key;
         std::string value;
-        get_Request >> key;
-        get_Request >> value;
+        get_Request >> key >> value;
         key = key.substr(0,key.find(":"));
         RequestHeader.insert(std::make_pair(key,value));
     }
@@ -44,7 +43,6 @@ void Derya_Request::Parse_Request(std::string Request){
 void Derya_Request::bolkr_Request_Line(std::string request_line){
     std::stringstream parter;
     parter << request_line;
-    while(parter){
+    while(parter)
         parter >> HTTPMethod >> Path >> HTTPVersion;
-    }
 }

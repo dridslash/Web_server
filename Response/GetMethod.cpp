@@ -1,23 +1,23 @@
 #include "Response.hpp"
 #include "../Derya_Request.hpp"
 #include "../Config/ConfigFile.hpp"
-#include "../Client_Smár.hpp"
-#include "../Server_Eyjafjörður.hpp"
+#include "../Client_Gymir.hpp"
+#include "../Server_Master.hpp"
 
-int Response::GetMethod(Config config, std::string OldPath) {
-    StatusCode = getResourcePath(config);
+int Response::GetMethod(Client_Gymir* & Client, Server_Master& Server, std::string OldPath) {
+    StatusCode = getResourcePath(Server.conf);
     if (StatusCode != 200) return StatusCode;
     if (getResourceType()) { // if it's directory
         StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
-        if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->AutoIndex == "on") {
+        if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->AutoIndex == "on") {
             StatusCode = autoindex(Path.c_str());
             return StatusCode;
         }
-        StatusCode = IsDirHaveIndexFiles(config);
+        StatusCode = IsDirHaveIndexFiles(Server.conf);
         if (StatusCode != 200) return StatusCode;
     }
-    StatusCode = IfLocationHaveCGI(config);
+    StatusCode = IfLocationHaveCGI(Client, Server);
     return StatusCode;
 }
 

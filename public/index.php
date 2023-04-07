@@ -1,5 +1,6 @@
 <?php
 
+// header("status", 500);
 // Set the variables for the HTML content
 $title = 'My PHP-Generated HTML Page';
 $message = 'Hello, World!';
@@ -15,6 +16,7 @@ $html = "<!DOCTYPE html>
 </body>
 </html>";
 
+	sleep(10);
 // Output the HTML content
 echo $html;
 ?>

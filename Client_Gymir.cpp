@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client_Smár.cpp                                    :+:      :+:    :+:   */
+/*   Client_Gymir.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,27 +10,27 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client_Smár.hpp"
+#include "Client_Gymir.hpp"
 
 //--------------STATIC_METHODES------------
 
-Client_Smár* Client_Smár::Draupnir_Smár(int sockcl) { return (new Client_Smár(sockcl)); }
+Client_Gymir* Client_Gymir::Draupnir_Smár(int sockcl) { return (new Client_Gymir(sockcl)); }
 
 //-----------------------------------------
 
-Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
+Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false), IsCGI(false) {
     
 }
 
-Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
+Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false), IsCGI(false) {
     
 }
 
-Client_Smár::~Client_Smár(){
+Client_Gymir::~Client_Gymir(){
     
 }
 
-void Client_Smár::Set_up_ip_port(){
+void Client_Gymir::Set_up_ip_port(){
     memset(&Own_addr,0,sizeof(Own_addr));
     int client_addlen = sizeof(Own_addr);
     getsockname(Client_Socket,(struct sockaddr*)&Own_addr,(socklen_t*)&client_addlen);
@@ -42,7 +42,7 @@ void Client_Smár::Set_up_ip_port(){
     ResponsePath.setPort(port_string.str());
 }
 
-// void Client_Smár::Fill_Request_State_it(){
+// void Client_Gymir::Fill_Request_State_it(){
 //     if (Client_Hamr == Still_Reading_Request){
 //     int R_received = recv(Client_Socket,Request + Bytes_received,1,0);
 //     if (R_received  == EAGAIN || R_received  == EWOULDBLOCK || R_received < 0){

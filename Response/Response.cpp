@@ -1,8 +1,9 @@
 #include "Response.hpp"
 #include "../Derya_Request.hpp"
 #include "../Config/ConfigFile.hpp"
-#include "../Client_Smár.hpp"
-#include "../Server_Eyjafjörður.hpp"
+#include "../Client_Gymir.hpp"
+#include "../Server_Master.hpp"
+
 
 Response::Response() : StatusCode(200) { LocationIndex = new std::pair<int, int>(-1, -1); }
 Response::~Response() { delete LocationIndex; }
@@ -63,7 +64,7 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
     return std::make_pair(-1, -1);
 }
 
-int Response::getResponsePath(Config config, Derya_Request& request) {
+int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Derya_Request& request) {
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
     if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
         return 501;
@@ -72,23 +73,23 @@ int Response::getResponsePath(Config config, Derya_Request& request) {
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
-    // if (file_size > stoi(config.MaxBodySize))// Request Body too large
+    // if (file_size > stoi(Server.conf.MaxBodySize))// Request Body too large
     //     return 413;
     delete LocationIndex;
-    LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(config));
+    LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(Server.conf));
     if (LocationIndex->first == -1) // Location not found (Client Error)
         return 404;
-    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->size()) { // There is redirection
-        Path = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->at(1);
+    if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->size()) { // There is redirection
+        Path = Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->at(1);
         return 301;
     }
-    if (std::find(config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->begin(),
-        config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end(),
-            HTTPMethod) == config.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end()) // Method not allowed
+    if (std::find(Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->begin(),
+        Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end(),
+            HTTPMethod) == Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->httpmethods->end()) // Method not allowed
         return 405;
     int Method = (HTTPMethod == "GET") * 0 + (HTTPMethod == "POST") * 1 + (HTTPMethod == "DELETE") * 2;
-    int (Response::*arr[3]) ( Config, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
-    StatusCode = (this->*arr[Method])(config, request.Path);
+    int (Response::*arr[3]) ( Client_Gymir* &, Server_Master&, std::string ) = {&Response::GetMethod, &Response::PostMethod, &Response::DeleteMethod};
+    StatusCode = (this->*arr[Method])(Client, Server, request.Path);
     return StatusCode;
 }
 
@@ -181,12 +182,12 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
     return StatusCode;
 }
 
-void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile) {
+void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya_Request& requestFile) {
     if (StatusCode == 200) {
-        StatusCode = getResponsePath(config, requestFile);
+        StatusCode = getResponsePath(Client, Server, requestFile);
         if (StatusCode == -1) return;
         if (StatusCode >= 400)
-            HandleErrorPages(config);
+            HandleErrorPages(Server.conf);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios_base::end);
@@ -194,25 +195,67 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
     Client->binaryFile.seekg(0, std::ios_base::beg);
 }
 
-void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server) {
+void Response::InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server) {
+    if (Client->IsCGI) {
+        std::map<std::string, std::string>::iterator it = RequestHeader.find("Location");
+        if (it != RequestHeader.end()) {
+            Path = it->second;
+            RequestHeader.clear();
+            RequestHeader.insert(std::make_pair("\r\nLocation", Path));
+            StatusCode = 301;
+            return ;
+        }
+        it = RequestHeader.find("Status");
+        if (it != RequestHeader.end()) {
+            // stoi Status to StatusCode with protect
+            // StatusCode = RequestHeader.at("Status");
+            RequestHeader.erase(it);
+        }
+        if (StatusCode != 200)
+            HandleErrorPages(Server.conf);
+        if (RequestHeader.find("Content-Length") == RequestHeader.end())
+            RequestHeader.insert(std::make_pair("Content-Length", std::to_string(Client->FileLength)));
+        StatusLine.clear();
+        StatusLine.append(HTTPVersion + " " + std::to_string(StatusCode) + " ");
+        StatusLine.append(getDesc());
+        return ;
+    }
+    StatusLine.clear();
+    StatusLine.append(HTTPVersion + " " + std::to_string(StatusCode) + " ");
+    StatusLine.append(getDesc());
+    RequestHeader.clear();
+    if (StatusCode == 301)
+        RequestHeader.insert(std::make_pair("Location", Path));
+    else {
+        RequestHeader.insert(std::make_pair("Content-Length", std::to_string(Client->FileLength)));
+        RequestHeader.insert(std::make_pair("Content-Type", Server.getContentType(Path.c_str())));
+    }
+}
+
+void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
     int S_sended;
     int ReadReturn;
     if (!Client->IsHeaderSended) {
-        std::string newresp = HTTPVersion;
-        newresp.append(" " + std::to_string(StatusCode) + " ");
-        newresp.append(getDesc());
-        if (StatusCode == 301) 
-            newresp.append("Location: " + Path);
-        else if (Header.size()) {
-            newresp.append(Header);
-            newresp.append("\r\nContent-Length: ");
-            newresp.append(std::to_string(Client->FileLength));
-        } else {
-            newresp.append("Content-Type: ");
-            newresp.append(Server.getContentType(Path.c_str()));
-            newresp.append("\r\nContent-Length: ");
-            newresp.append(std::to_string(Client->FileLength));
-        }
+        InitResponseHeaders(Client, Server);
+        std::string newresp = StatusLine;
+        // std::cout << StatusLine << std::endl;
+        for (std::map<std::string, std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end(); it++)
+            newresp.append("\r\n" + it->first + ": " + it->second);
+        // newresp.append(" " + std::to_string(StatusCode) + " ");
+        // newresp.append(getDesc());
+        // if (StatusCode == 301) 
+        //     newresp.append("Location: " + Path);
+        // else if (Client->IsCGI) {
+        //     newresp.append(Header);
+        //     newresp.append("\r\nContent-Length: ");
+        //     newresp.append(std::to_string(Client->FileLength));
+        // } else {
+        //     newresp.append("Content-Type: ");
+        //     newresp.append(Server.getContentType(Path.c_str()));
+        //     newresp.append("\r\nContent-Length: ");
+        //     newresp.append(std::to_string(Client->FileLength));
+        // }
+        
         newresp.append("\r\n\r\n");
         std::strcpy(Client->temp_resp, newresp.c_str());
         ReadReturn = newresp.size();
@@ -222,6 +265,8 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
         ReadReturn = Client->binaryFile.gcount();
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
+    if (Client->IsHeaderSended)
+        Client->Bytes_Sended += S_sended;
     if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
         Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
@@ -234,31 +279,31 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
 std::string Response::getDesc() {
     switch (StatusCode) {
         case 200:
-            return "OK\r\n";
+            return "OK";
         case 201:
-            return "Created\r\n";
+            return "Created";
         case 204:
-            return "No Content\r\n";
+            return "No Content";
         case 301:
-            return "Moved Permanently\r\n";
+            return "Moved Permanently";
         case 400:
-            return "Bad Request\r\n";
+            return "Bad Request";
         case 403:
-            return "Forbidden\r\n";
+            return "Forbidden";
         case 404:
-            return "Not Found\r\n";
+            return "Not Found";
         case 405:
-            return "Method Not Allowed\r\n";
+            return "Method Not Allowed";
         case 409:
-            return "Conflict\r\n";
+            return "Conflict";
         case 413:
-            return "Content Too Large\r\n";
+            return "Content Too Large";
         case 414:
-            return "URI Too Long\r\n";
+            return "URI Too Long";
         case 500:
-            return "Internal Server Error\r\n";
+            return "Internal Server Error";
         case 501:
-            return "Not Implemented\r\n";
+            return "Not Implemented";
     }
-    return "Not Implemented\r\n";
+    return "Not Implemented";
 }

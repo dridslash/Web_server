@@ -2,9 +2,9 @@
 #include "../header.hpp"
 
 class Config;
-class Server_Eyjafjörður;
+class Server_Master;
 class Derya_Request;
-class Client_Smár;
+class Client_Gymir;
 class Response {
     private:
         std::string HTTPMethod;
@@ -19,6 +19,7 @@ class Response {
         std::pair<int, int>* LocationIndex;
         std::string Header;
         std::ofstream File;
+        std::string StatusLine;
     public:
         Response();
         ~Response();
@@ -31,24 +32,27 @@ class Response {
         void setHost(std::string);
         void setPort(std::string);
         void setStatusCode(int);
-        int getResponsePath(Config, Derya_Request&);
+        int getResponsePath(Client_Gymir* &, Server_Master&, Derya_Request&);
         std::pair<int, int> getLocationBlockOfTheRequest(Config);
         int getResourcePath(Config);
-        int GetMethod(Config, std::string);
-        int PostMethod(Config, std::string);
-        int DeleteMethod(Config, std::string);
+        int GetMethod(Client_Gymir* &, Server_Master&, std::string);
+        int PostMethod(Client_Gymir* &, Server_Master&, std::string);
+        int DeleteMethod(Client_Gymir* &, Server_Master&, std::string);
         int autoindex(const char *);
         int HandleErrorPages(Config );
         int getResourceType();
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
-        int IfLocationHaveCGI(Config config);
+        int IfLocationHaveCGI(Client_Gymir* Client, Server_Master& Server);
         void ResponseFile(std::string &, Config, Derya_Request&);
         int RemoveDirectory(std::string);
         std::string getDesc();
         int CheckRequestLine(Config config, Derya_Request& request);
-        void MakeResponse(Client_Smár* & Client, Config config, Derya_Request& requestFile);
-        void SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server);
-        int ParseCgiOutput(char* buffer);
-
+        void MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya_Request& requestFile);
+        void SendResponse(Client_Gymir* & Client, Server_Master& Server);
+        int ParseBody(char* buffer, Server_Master& Server);
+        int InitCGI(Client_Gymir* Client, Config config);
+        void InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server);
+        bool look_for_BWS(std::string field_name);
+        int ParseCGIHeaders(char* buffer);
 };
