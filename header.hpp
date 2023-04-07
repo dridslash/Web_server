@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sstream>
 #include <netdb.h>
 #include <sys/event.h>

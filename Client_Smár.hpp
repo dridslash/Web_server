@@ -1,9 +1,13 @@
+
 #pragma once
+
 #include "header.hpp"
-#include "Response/Response.hpp"
 #include "Derya_Request.hpp"
+#include "Response/Response.hpp"
 #define Max_Reads 2048
 #define Max_Writes 1024
+
+// class Derya_Request;
 
 enum Hávamál {
     Still_Reading_Request,
@@ -34,3 +38,4 @@ class Client_Smár{
         std::ifstream binaryFile;
         int FileLength;
 };
+

@@ -1,7 +1,5 @@
 #pragma once
-
 #include "../header.hpp"
-
 class LocationBlocks {
     public:
     LocationBlocks();

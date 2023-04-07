@@ -1,5 +1,5 @@
 #include "Response.hpp"
-#include "../Derya_Request.hpp"
+// #include "../Derya_Request.hpp"
 #include "../Config/ConfigFile.hpp"
 #include "../Client_Smár.hpp"
 #include "../Server_Eyjafjörður.hpp"
@@ -242,8 +242,6 @@ void Response::MakeResponse(Client_Smár* & Client, Config config, Derya_Request
             HandleErrorPages(config);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
-    // Client->binaryFile.ignore();
-    // Client->FileLength = Client->binaryFile.gcount();
     Client->binaryFile.seekg(0, std::ios_base::end);
     Client->FileLength = Client->binaryFile.tellg();
     Client->binaryFile.seekg(0, std::ios_base::beg);
@@ -260,6 +258,7 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
             newresp.append("Location: " + Path);
         } else {
             newresp.append("Content-Type: ");
+            // std::cout << Path << std::endl;
             newresp.append(Server.getContentType(Path.c_str()));
             newresp.append("\r\nContent-Length: ");
             newresp.append(std::to_string(Client->FileLength));
@@ -274,7 +273,7 @@ void Response::SendResponse(Client_Smár* & Client, Server_Eyjafjörður& Server
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
-        Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
+        // Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;
     }

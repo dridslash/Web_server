@@ -1,8 +1,8 @@
 #include "Response.hpp"
-#include "../Derya_Request.hpp"
+// #include "../Derya_Request.hpp"
 #include "../Config/ConfigFile.hpp"
-#include "../Client_Smár.hpp"
-#include "../Server_Eyjafjörður.hpp"
+// #include "../Client_Smár.hpp"
+// #include "../Server_Eyjafjörður.hpp"
 
 int Response::PostMethod(Config config, std::string OldPath) {
     StatusCode = getResourcePath(config);
