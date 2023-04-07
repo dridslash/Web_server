@@ -62,6 +62,7 @@ int Response::ParseCGIHeaders(char* buffer) {
         index_offset = key_value_geminie.find(":") + 1;
         key = key_value_geminie.substr(0,index_offset - 1);
         value = key_value_geminie.substr(index_offset + 1);
+        value.pop_back();
         if (key == "Content-type" && value.find(";") != std::string::npos)
             value = value.substr(0, value.find(";"));
         if (look_for_BWS(key) || isspace(value[0]))
@@ -84,7 +85,6 @@ int Response::IfLocationHaveCGI(Client_Gymir* Client, Server_Master& Server) {
     if (wait == 0) return -1;
     char buffer[100000];
     int r = read(Client->fd[0], buffer, 10000);
-    std::cout << buffer << std::endl;
     buffer[r] = '\0';
     close(Client->fd[1]);
     close(Client->fd[0]);

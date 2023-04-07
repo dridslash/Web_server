@@ -1,6 +1,5 @@
 <?php
-
-// header("status", 500);
+header("Location: https://www.google.com");
 // Set the variables for the HTML content
 $title = 'My PHP-Generated HTML Page';
 $message = 'Hello, World!';
@@ -15,8 +14,6 @@ $html = "<!DOCTYPE html>
 	<h1>$message</h1>
 </body>
 </html>";
-
-	sleep(10);
 // Output the HTML content
 echo $html;
 ?>

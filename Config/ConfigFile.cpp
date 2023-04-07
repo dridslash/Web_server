@@ -27,7 +27,11 @@ void LocationBlocks::setReturn(std::vector<std::string> str) { Return->assign(st
 
 ServerBlocks::ServerBlocks() : listen(1, "80") {
     std::set<int> s;
-    s.insert(400);
+    s.insert(201);
+    ErrorPage.insert(std::make_pair(s, "/html/201.html"));
+    s.clear(); s.insert(204);
+    ErrorPage.insert(std::make_pair(s, "/html/204.html"));
+    s.clear(); s.insert(400);
     ErrorPage.insert(std::make_pair(s, "/html/400.html"));
     s.clear(); s.insert(403);
     ErrorPage.insert(std::make_pair(s, "/html/403.html"));

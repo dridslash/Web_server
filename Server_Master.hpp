@@ -44,12 +44,13 @@ class Server_Master {
         static Server_Master* Draupnir();
         void Add_Client(Client_Gymir *client_copy);
         void Delete_Client(Client_Gymir *client_copy);
+        void Reading_Part(int n_ev);
         bool Check_Hamr_Clients();
         int Fill_Request_State_it(Client_Gymir* client_request_state);
         bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
         void Send_Response_State_It(Client_Gymir* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
-        void Client_loop(struct kevent *retreived_events, int how_many_events);
+        void Sending_Part(struct kevent *retreived_events, int how_many_events);
         void DropClient(std::map<int,Client_Gymir*>::iterator& it);
         void PrintStatus(int fd = 0, const char* HTTPMethod = 0, std::string Path = std::string(), int StatusCode = 0, int flag = 0);
         

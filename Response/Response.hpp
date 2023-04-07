@@ -39,7 +39,7 @@ class Response {
         int PostMethod(Client_Gymir* &, Server_Master&, std::string);
         int DeleteMethod(Client_Gymir* &, Server_Master&, std::string);
         int autoindex(const char *);
-        int HandleErrorPages(Config );
+        void HandleErrorPages(Config );
         int getResourceType();
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );

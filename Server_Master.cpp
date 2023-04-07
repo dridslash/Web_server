@@ -29,7 +29,7 @@ Server_Master::Server_Master():event_tracker(0){
     std::ifstream myfile("public/mime.types");
 	std::string key, value;
     if ( myfile.is_open() ) {
-		while ( myfile ) {
+		while ( !myfile.eof() ) {
 			myfile >> value >> key;
 			ContentTypes.insert(std::make_pair(key, value));
 		}
@@ -60,15 +60,11 @@ Server_Master::Server_Master(int sk,const char *port):Server_Socket(sk){
 }
 
 void Server_Master::Change_Socket_To_Non_Block(int &fd){
-    if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0){
+    if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0)
         perror("FCNTL Error");
-        exit(EXIT_FAILURE);
-    }
 }
 
 void Server_Master::Set_up_listeners(const char *port){
-    // PORT = port;
-
     memset(&hints, 0, sizeof(hints));
     
     hints.ai_family = AF_INET;
@@ -100,16 +96,11 @@ void Server_Master::Set_up_listeners(const char *port){
     }
 
     // freeaddrinfo(servinfo);
-    
-    // Dvergmál("IP Bound");
-    
+        
     if (listen(Server_Socket,SOMAXCONN) < 0) {
         perror("Listen Error");
         exit(EXIT_FAILURE);
     }
-
-    // Dvergmál("Server up and listening...");
-
     Add_Event_to_queue_ker(Server_Socket,EVFILT_READ);
     listeners.insert(Server_Socket);
 }
@@ -120,14 +111,12 @@ void Server_Master::Upp_ports(char *Config_file){
         exit(EXIT_FAILURE);
     }
     conf.ConfigParse(Config_file);
-    int MAX_PORTS = conf.Ports.size();
     PrintStatus();
    for(std::set<std::string>::iterator it = conf.Ports.begin();it != conf.Ports.end();it++)
         Set_up_listeners((*it).c_str());
 }
 
 int Server_Master::multiplexing(){
-    int j = 0;
     struct timespec timeout;
     timeout.tv_sec = 1;
     timeout.tv_nsec = 0;
@@ -136,27 +125,33 @@ int Server_Master::multiplexing(){
         if (n_ev < 0) perror("kevent");
         for (int i = 0; i < n_ev ; i++) {
             if (retrieved_events[i].filter == EVFILT_READ) {
-                if (listeners.find(retrieved_events[i].ident) != listeners.end()) {
-                //====================== ACCEPT CONNECTION ========================
-                int client_socket = accept((*listeners.find(retrieved_events[i].ident)),(struct sockaddr *)(&servinfo->ai_addr),
-                    reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
-                Client_Gymir *client_copy = new Client_Gymir(client_socket);
-                if (client_socket < 0) CLOSING_SOCKET(client_socket);
-                PrintStatus(client_socket);
-                Add_Client(client_copy);
-                } else {
-                     for(std::map<int,Client_Gymir*>::iterator it = Clients.begin(); it != Clients.end();) {
-                        if (Search_in_Events(it->second->Client_Socket,retrieved_events,n_ev) == READ) {
-                            if (Fill_Request_State_it(it->second)) DropClient(it);
-                            else it++;
-                        }
-                        else it++;
-                    }
+                if (listeners.find(retrieved_events[i].ident) != listeners.end()){
+                    //====================== ACCEPT CONNECTION ========================
+                    int client_socket = accept((*listeners.find(retrieved_events[i].ident)),(struct sockaddr *)(&servinfo->ai_addr),
+                        reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
+                    Client_Gymir *client_copy = new Client_Gymir(client_socket);
+                    if (client_socket < 0) CLOSING_SOCKET(client_socket);
+                    PrintStatus(client_socket);
+                    Add_Client(client_copy);
                 }
+                else
+                    Reading_Part(n_ev);
             }
             else
-                Client_loop(retrieved_events,n_ev);
+                Sending_Part(retrieved_events,n_ev);
         }
+    }
+}
+
+void Server_Master::Reading_Part(int n_ev) {
+    for (std::map<int,Client_Gymir*>::iterator it = Clients.begin(); it != Clients.end();) {
+        if (Search_in_Events(it->second->Client_Socket,retrieved_events,n_ev) == READ) {
+            if (Fill_Request_State_it(it->second))
+                DropClient(it);
+            else
+                it++;
+        }
+        else it++;
     }
 }
 
@@ -167,7 +162,7 @@ void Server_Master::DropClient(std::map<int,Client_Gymir*>::iterator& it) {
 }
 
 
-void Server_Master::Client_loop(struct kevent *retreived_events, int how_many_events) {
+void Server_Master::Sending_Part(struct kevent *retreived_events, int how_many_events) {
     for(std::map<int,Client_Gymir*>::iterator it = Clients.begin(); it != Clients.end();){
         if (Search_in_Events(it->second->Client_Socket,retreived_events,how_many_events) == WRITE) {
             if (it->second->IsHeaderSended == 0) {
@@ -186,25 +181,15 @@ void Server_Master::Client_loop(struct kevent *retreived_events, int how_many_ev
 
 int Server_Master::Fill_Request_State_it(Client_Gymir* Client) {
     char buffer[Max_Reads + 1];
-    std::cout << "R_received" << std::endl;
     if (Client->Client_Hamr == Still_Reading_Request) {
-        std::cout << "R_received1" << std::endl;
         int R_received = recv(Client->Client_Socket, buffer, Max_Reads, 0);
-        std::cout << R_received << std::endl;
         if (R_received <= 0) return 1;
         buffer[R_received] = 0;
         std::string get_when_ended(buffer);
         Client->Request.append(buffer);
-        Client->Request_parser.Parse_Request(Client->Request);
-        // if (Client->Request.size() == R_received)
-        // if (get_when_ended.find("\r\n\r\n") != std::string::npos) {
-        //     Client->Client_Hamr = Response_Working_On_Headers;
-        //     Client->ResponsePath.CheckRequestLine(Client->Request_parser);
-        //     Client->ResponsePath.MakeResponse(Client, Client->Request_parser);
-        // }
+        Client->ResponsePath.setStatusCode(Client->Request_parser.Parse_Request(Client->Request));
         if (get_when_ended.find("\r\n") != std::string::npos) {
             PrintStatus(Client->Client_Socket, Client->Request_parser.HTTPMethod.c_str(), Client->Request_parser.Path);
-            // std::cout << "/* cursor */" << std::endl;
             Add_Event_to_queue_ker(Client->Client_Socket,EVFILT_WRITE);
             Delete_Event_to_queue_ker(Client->Client_Socket,EVFILT_READ);
             Client->Client_Hamr = Response_Still_Serving;
@@ -216,21 +201,21 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* Client) {
 int Server_Master::Get_Server_Socket() const { return (Server_Socket); }
 
 bool Server_Master::Add_Event_to_queue_ker(int fd , int filter){
-    EV_SET(&events[0],fd,filter,EV_ADD | EV_ENABLE,0,0,NULL);
+    EV_SET(&events[0], fd, filter, EV_ADD, 0, 0, NULL);
     kevent(kq,&events[0],1,NULL,0,NULL);
     return (true);
 }
 
 
 bool Server_Master::Disable_Event_from_queue_ker(int &fd , int filter){
-    EV_SET(&events[0],fd,filter,EV_DISABLE ,0,0,NULL);
-    kevent(kq,events,1,NULL,0,NULL);
+    EV_SET(&events[0], fd, filter, EV_DISABLE, 0, 0, NULL);
+    kevent(kq,events, 1, NULL, 0, NULL);
     return (true);
 }
 
 bool Server_Master::Enable_Event_from_queue_ker(int &fd , int filter){
     struct kevent event[1];
-    EV_SET(&event[0],fd,filter,EV_ENABLE ,0,0,NULL);
+    EV_SET(&event[0], fd, filter, EV_ENABLE , 0, 0, NULL);
     kevent(kq,event,1,NULL,0,NULL);
     return (true);
 }

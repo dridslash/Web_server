@@ -8,7 +8,6 @@
 enum Hávamál {
     Still_Reading_Request,
     Request_Completed,
-    Response_Working_On_Headers,
     Response_Still_Serving,
     Response_Completed
 };

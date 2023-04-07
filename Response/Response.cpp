@@ -93,7 +93,7 @@ int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Der
     return StatusCode;
 }
 
-int Response::HandleErrorPages(Config config) {
+void Response::HandleErrorPages(Config config) {
     if (LocationIndex->first == -1)
         LocationIndex->first = 0;
     for (std::map<std::set<int>, std::string>::iterator it = config.Servers[LocationIndex->first].ErrorPage.begin(); it != config.Servers[LocationIndex->first].ErrorPage.end(); it++)
@@ -102,11 +102,10 @@ int Response::HandleErrorPages(Config config) {
             if (*ite == StatusCode) {
                 Path = config.Servers[LocationIndex->first].root;
                 Path.append(it->second);
-                return 1;
+                return ;
             }
         }
     }
-    return 200;
 }
 
 int Response::getResourcePath(Config config) {
@@ -134,7 +133,7 @@ int Response::IsURIHasSlashAtTheEnd(std::string OldPath) {
     if (Path.back() != '/') {
         Path = OldPath;
         Path.append("/");
-        if (HTTPMethod == "POST")
+        if (HTTPMethod == "DELETE")
             return 409;
         return 301;
     }
@@ -186,7 +185,7 @@ void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya
     if (StatusCode == 200) {
         StatusCode = getResponsePath(Client, Server, requestFile);
         if (StatusCode == -1) return;
-        if (StatusCode >= 400)
+        if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
     }
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
@@ -201,19 +200,20 @@ void Response::InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server
         if (it != RequestHeader.end()) {
             Path = it->second;
             RequestHeader.clear();
-            RequestHeader.insert(std::make_pair("\r\nLocation", Path));
+            RequestHeader.insert(std::make_pair("Location", Path));
             StatusCode = 301;
-            return ;
         }
-        it = RequestHeader.find("Status");
-        if (it != RequestHeader.end()) {
-            // stoi Status to StatusCode with protect
-            // StatusCode = RequestHeader.at("Status");
-            RequestHeader.erase(it);
+        else if (RequestHeader.find("Status") != RequestHeader.end()) {
+            if (RequestHeader.at("Status").size() != strspn(RequestHeader.at("Status").c_str(), "0123456789"))
+                StatusCode = 400;
+            else {
+                StatusCode = stoi(RequestHeader.at("Status"));
+                RequestHeader.erase(it);
+            }
         }
-        if (StatusCode != 200)
+        if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
-        if (RequestHeader.find("Content-Length") == RequestHeader.end())
+        if (StatusCode != 301 && RequestHeader.find("Content-Length") == RequestHeader.end())
             RequestHeader.insert(std::make_pair("Content-Length", std::to_string(Client->FileLength)));
         StatusLine.clear();
         StatusLine.append(HTTPVersion + " " + std::to_string(StatusCode) + " ");
@@ -238,24 +238,8 @@ void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
     if (!Client->IsHeaderSended) {
         InitResponseHeaders(Client, Server);
         std::string newresp = StatusLine;
-        // std::cout << StatusLine << std::endl;
         for (std::map<std::string, std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end(); it++)
             newresp.append("\r\n" + it->first + ": " + it->second);
-        // newresp.append(" " + std::to_string(StatusCode) + " ");
-        // newresp.append(getDesc());
-        // if (StatusCode == 301) 
-        //     newresp.append("Location: " + Path);
-        // else if (Client->IsCGI) {
-        //     newresp.append(Header);
-        //     newresp.append("\r\nContent-Length: ");
-        //     newresp.append(std::to_string(Client->FileLength));
-        // } else {
-        //     newresp.append("Content-Type: ");
-        //     newresp.append(Server.getContentType(Path.c_str()));
-        //     newresp.append("\r\nContent-Length: ");
-        //     newresp.append(std::to_string(Client->FileLength));
-        // }
-        
         newresp.append("\r\n\r\n");
         std::strcpy(Client->temp_resp, newresp.c_str());
         ReadReturn = newresp.size();
@@ -273,7 +257,6 @@ void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
         Client->Client_Hamr = Response_Completed;
     }
     Client->IsHeaderSended = true;
-    return ;
 }
 
 std::string Response::getDesc() {
