@@ -1,5 +1,3 @@
-#pragma once
-
 #include <sstream>
 #include <netdb.h>
 #include <sys/event.h>
@@ -25,7 +23,6 @@
 #include <limits.h>
 #include <math.h>
 #include <cstdlib>
-#include <iostream>
 
 #define BUFFER_SIZE 1024
 #define MAX_CONNECTIONS 1024

@@ -16,7 +16,7 @@ Derya_Request::Derya_Request():HTTPMethod(),Path(),HTTPVersion(),stat_method_for
 
 Derya_Request::~Derya_Request(){}
 
-int Derya_Request::Parse_Request(std::string Request,Server_Eyjafjörður serv){
+int Derya_Request::Parse_Request(std::string Request,Server_Master serv){
     std::stringstream get_Request;
     get_Request << Request;
     
@@ -85,7 +85,7 @@ bool Derya_Request::look_for_BWS(std::string field_name){
     return false;
 }
 
-std::string Derya_Request::Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Eyjafjörður serv){
+std::string Derya_Request::Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Master serv){
     std::cout << "SLICING" << std::endl;
     if ((HTTPMethod.compare("GET") == 0 || HTTPMethod.compare("DELETE") == 0) && flag_fill_file == 1000){
         std::cout << "IN GET/DELETE WORK" << std::endl;

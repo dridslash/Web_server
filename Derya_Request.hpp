@@ -12,7 +12,7 @@
 
 #pragma once
 #include "header.hpp"
-#include "Server_Eyjafjörður.hpp"
+#include "Server_Master.hpp"
 
 enum check_for_methods{
     POST,
@@ -37,7 +37,7 @@ class Derya_Request{
     int flag_fill_file;
 
     //FUNCTION PARSING REQUEST
-    int Parse_Request(std::string Request,Server_Eyjafjörður serv);
+    int Parse_Request(std::string Request,Server_Master serv);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);
@@ -46,7 +46,7 @@ class Derya_Request{
     bool look_for_BWS(std::string field_name);
 
     //DETERMEN BODY AND HEADER
-    std::string Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Eyjafjörður serv);
+    std::string Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Master serv);
 
 
     // client_request_state->Request.substr(0,client_request_state->Request.find("\r\n\r\n"))
