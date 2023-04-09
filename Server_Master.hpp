@@ -34,6 +34,7 @@ class Server_Master {
         void Upp_ports(char *Config_file);
         void Set_up_listeners(const char *port);
         int multiplexing();
+        void Parsing_Post(Client_Gymir* client_request_state);
         bool Add_Event_to_queue_ker(int fd , int filter);
         bool Disable_Event_from_queue_ker(int &fd , int filter);
         bool Delete_Event_to_queue_ker(int fd , int filter);

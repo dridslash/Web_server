@@ -179,20 +179,35 @@ void Server_Master::Sending_Part(struct kevent *retreived_events, int how_many_e
     }
 }
 
-int Server_Master::Fill_Request_State_it(Client_Gymir* Client) {
+int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
     char buffer[Max_Reads + 1];
-    if (Client->Client_Hamr == Still_Reading_Request) {
-        int R_received = recv(Client->Client_Socket, buffer, Max_Reads, 0);
+    memset(buffer,0,Max_Reads);
+    int stat = 0;
+    if (client_request_state->Client_Hamr == Still_Reading_Request) {
+        int R_received = recv(client_request_state->Client_Socket,buffer, Max_Reads, 0);
         if (R_received <= 0) return 1;
+        //client_request_state->Bytes_received += R_received;
         buffer[R_received] = 0;
-        std::string get_when_ended(buffer);
-        Client->Request.append(buffer);
-        Client->ResponsePath.setStatusCode(Client->Request_parser.Parse_Request(Client->Request));
-        if (get_when_ended.find("\r\n") != std::string::npos) {
-            PrintStatus(Client->Client_Socket, Client->Request_parser.HTTPMethod.c_str(), Client->Request_parser.Path);
-            Add_Event_to_queue_ker(Client->Client_Socket,EVFILT_WRITE);
-            Delete_Event_to_queue_ker(Client->Client_Socket,EVFILT_READ);
-            Client->Client_Hamr = Response_Still_Serving;
+        client_request_state->Request.assign(buffer , buffer + R_received);
+        client_request_state->Request_parser.Parse_Request(client_request_state->Request,*this);
+        stat = client_request_state->Request_parser.stat_method_form.first;
+        if (client_request_state->Request_parser.stat_method_form.second == POST){
+            std::cout << "POOOOOOOST" << std::endl;
+            client_request_state->ResponsePath.setStatusCode(stat);
+
+        // Parsing_Post(client_request_state);
+        }
+        else if (client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE){
+            std::cout << "in get/delete working here !!!!" << std::endl;
+            client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request;
+            std::cout << client_request_state->Request << std::endl;
+            client_request_state->ResponsePath.setStatusCode(stat);
+            if (client_request_state->Request.find("\r\n\r\n") != std::string::npos || client_request_state->Request.find("\r\n") != std::string::npos) {
+            //PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
+            Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+            Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
+            client_request_state->Client_Hamr = Response_Still_Serving;
+        }
         }
     }
     return 0;
@@ -301,4 +316,13 @@ void Server_Master::PrintStatus(int fd, const char* HTTPMethod, std::string Path
     }
     else
         std::cout << "     [  Server  ]     [INFO]          Initializing Servers..." << std::endl;
+}
+
+void Server_Master::Parsing_Post(Client_Gymir* client_request_state) {
+    if (client_request_state->Request_parser.HTTPMethod.compare("POST") == 0){
+        std::cout << client_request_state->Request << std::endl;
+        // std::cout << client_request_state->Request <<std::endl;
+            // std::cout << "it's a post Method change parsing method" << std::endl;
+            // std::cout << client_request_state->Request_parser.RequestHeader.find("Content-Length")->second << std::endl;
+    }
 }

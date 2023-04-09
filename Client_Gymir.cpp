@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client_Gymir.cpp                                    :+:      :+:    :+:   */
+/*   Client_Gymir.cpp                                    :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/31 09:25:00 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/07 16:29:55 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,23 +14,19 @@
 
 //--------------STATIC_METHODES------------
 
-Client_Gymir* Client_Gymir::Draupnir_Smár(int sockcl) { return (new Client_Gymir(sockcl)); }
+Client_Gymir* Client_Gymir::Draupnir_Smár(int sockcl){
+    return (new Client_Gymir(sockcl));
+}
 
 //-----------------------------------------
 
-Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false), IsCGI(false) {
-    
-}
+Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request() {}
 
-Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false), IsCGI(false) {
-    
-}
+Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request() {}
 
-Client_Gymir::~Client_Gymir(){
-    
-}
+Client_Gymir::~Client_Gymir() {}
 
-void Client_Gymir::Set_up_ip_port(){
+void Client_Gymir::Set_up_ip_port() {
     memset(&Own_addr,0,sizeof(Own_addr));
     int client_addlen = sizeof(Own_addr);
     getsockname(Client_Socket,(struct sockaddr*)&Own_addr,(socklen_t*)&client_addlen);
