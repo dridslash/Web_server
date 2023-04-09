@@ -31,7 +31,7 @@ int Response::RemoveDirectory(std::string path) {
     readdir(dir);
     readdir(dir);
     while ((entry = readdir(dir)) != NULL) {
-        if (path.back() != '/') path.append("/");
+        if (path[path.length() - 1] != '/') path.append("/");
         Path = path + entry->d_name;
         stat(Path.c_str(), &result);
         if ( entry->d_type == DT_DIR ) {

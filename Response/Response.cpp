@@ -130,7 +130,7 @@ int Response::getResourceType() {
 }
 
 int Response::IsURIHasSlashAtTheEnd(std::string OldPath) {
-    if (Path.back() != '/') {
+    if (Path[Path.length() - 1] != '/') {
         Path = OldPath;
         Path.append("/");
         if (HTTPMethod == "DELETE")
