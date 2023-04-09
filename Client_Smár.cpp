@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/03/31 09:25:00 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/07 16:29:55 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,17 @@
 
 //--------------STATIC_METHODES------------
 
-Client_Smár* Client_Smár::Draupnir_Smár(int sockcl) { return (new Client_Smár(sockcl)); }
+Client_Smár* Client_Smár::Draupnir_Smár(int sockcl){
+        return (new Client_Smár(sockcl));
+    }
 
 //-----------------------------------------
 
-Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
+Client_Smár::Client_Smár():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request() {
     
 }
 
-Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) {
+Client_Smár::Client_Smár(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(){
     
 }
 
