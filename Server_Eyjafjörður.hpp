@@ -53,6 +53,8 @@ class Server_Eyjafjörður {
         void Reading_Part(int n_ev);
         void Sending_Part(struct kevent *retreived_events, int how_many_events);
         void PrintStatus(int fd = 0, const char* HTTPMethod = 0, std::string Path = std::string(), int StatusCode = 0, int flag = 0);
+        void Parsing_Post(Client_Smár* client_request_state);
+        std::string getReverseContentType(const char* resp);
         
     private:
         static int reuse; 

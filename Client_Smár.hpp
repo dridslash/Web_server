@@ -4,7 +4,7 @@
 #include "header.hpp"
 #include "Derya_Request.hpp"
 #include "Response/Response.hpp"
-#define Max_Reads 2048
+#define Max_Reads 6000
 #define Max_Writes 1024
 
 // class Derya_Request;

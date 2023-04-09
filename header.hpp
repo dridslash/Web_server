@@ -25,9 +25,11 @@
 #include <limits.h>
 #include <math.h>
 #include <cstdlib>
+#include <iostream>
 
 #define BUFFER_SIZE 1024
 #define MAX_CONNECTIONS 1024
+#define CRLF "\r\n\r\n"
 
 #define Dvergmál(a) std::cout << a << std::endl;
 #define CLOSING_SOCKET(s) close(s)
