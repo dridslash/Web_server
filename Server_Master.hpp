@@ -1,7 +1,5 @@
 #pragma once
 #include "header.hpp"
-#include "Config/ConfigFile.hpp"
-#include "Client_Gymir.hpp"
 #include "Response/Response.hpp"
 
 enum events_check{
@@ -9,6 +7,7 @@ enum events_check{
     WRITE
 };
 
+class Client_Gymir;
 class Server_Master {
     public:
         struct addrinfo hints , *servinfo;

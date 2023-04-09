@@ -1,7 +1,6 @@
 #pragma once
-#include "../header.hpp"
+#include "../Config/ConfigFile.hpp"
 
-class Config;
 class Server_Master;
 class Derya_Request;
 class Client_Gymir;

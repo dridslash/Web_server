@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #pragma once
-#include "header.hpp"
 #include "Server_Master.hpp"
 
 enum check_for_methods{
@@ -37,7 +36,7 @@ class Derya_Request{
     int flag_fill_file;
 
     //FUNCTION PARSING REQUEST
-    int Parse_Request(std::string Request,Server_Master serv);
+    int Parse_Request(std::string Request, Server_Master serv);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);

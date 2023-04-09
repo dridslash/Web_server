@@ -1,8 +1,7 @@
 #pragma once
-#include "header.hpp"
-#include "Response/Response.hpp"
 #include "Derya_Request.hpp"
-#define Max_Reads 2048
+
+#define Max_Reads 6000
 #define Max_Writes 1024
 
 enum Hávamál {
@@ -12,7 +11,8 @@ enum Hávamál {
     Response_Completed
 };
 
-class Client_Gymir{
+class Response;
+class Client_Gymir {
     public:
         Hávamál Client_Hamr;
         Response ResponsePath;

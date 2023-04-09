@@ -1,4 +1,5 @@
 #include "Server_Master.hpp"
+#include "Client_Gymir.hpp"
 
 //--------------STATIC_VARIABLES------------
 
