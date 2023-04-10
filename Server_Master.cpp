@@ -202,7 +202,7 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
         // Parsing_Post(client_request_state);
         }
         else if (client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE){
-            // std::cout << "in get/delete working here !!!!" << std::endl;
+            std::cout << "in get/delete working here !!!!" << std::endl;
             client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request.first;
             // std::cout << client_request_state->Request << std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);

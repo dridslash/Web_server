@@ -6,13 +6,13 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/10 11:13:48 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/10 14:02:52 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Derya_Request.hpp"
 
-Derya_Request::Derya_Request():HTTPMethod(),Path(),HTTPVersion(),stat_method_form(-1,NONE),Hold_sliced_Request(),flag_fill_file(1000),content_length(0){}
+Derya_Request::Derya_Request():HTTPMethod(),Path(),HTTPVersion(),stat_method_form(-1,GET),Hold_sliced_Request(),flag_fill_file(1000),content_length(0){}
 
 Derya_Request::~Derya_Request(){}
 
@@ -58,34 +58,43 @@ int Derya_Request::Parse_Request(std::string Request,Server_Master serv,unsigned
     if (HTTPMethod == "GET" && (RequestHeader.find("Content-Length") != RequestHeader.end()
         || RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
         // std::cout << "Bad Request" << std::endl;
+        stat_method_form = std::make_pair(400,GET);
         return (400);
     }
-    if (HTTPMethod == "POST" && (RequestHeader.find("Content-Type") != RequestHeader.end() || RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
-        // std::cout << R_v << std::endl;
-        // std::cout << Hold_sliced_Request.first.size() + 4 << std::endl;
+    if (HTTPMethod == "POST"){
+        if ((RequestHeader.find("Content-Type") != RequestHeader.end() && RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
+                stat_method_form = std::make_pair(400,POST);
+                return (400);
+        }
+        else{
         content_length = stoi(RequestHeader.at("Content-Length"));
         Post_body_file.open("test" + serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()) ,std::ios::out | std::ios::app);
         Post_body_file << Hold_sliced_Request.second; 
         flag_fill_file = 9000;
-        if (check_file_size(Post_body_file) >= content_length)
+            if (check_file_size(Post_body_file) >= content_length){
+            Post_body_file.close();
+            stat_method_form = std::make_pair(200,POST);
             return (200);
-    }else{
-        return (400);
+            }
         }
+    }
     }
     else{
         // std::cout << flag_fill_file << std::endl;
         // std::cout << Request << std::endl;
        Post_body_file << Hold_sliced_Request.first;
-       if (check_file_size(Post_body_file) >= content_length)
+       if (check_file_size(Post_body_file) >= content_length){
+            Post_body_file.close();
+            stat_method_form = std::make_pair(200,POST);
             return (200);
+       }
     }
     //===================================================================
     //  for(std::map<std::string,std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end();it++){
     //     std::cout << "key -->" << it->first << "\nvalue -->" << it->second << std::endl;
     // }
     //===================================================================
-    
+    // stat_method_form = std::make_pair(200,NONE);
     return (-1);
 }
 
