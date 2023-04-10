@@ -190,24 +190,28 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
         //client_request_state->Bytes_received += R_received;
         buffer[R_received] = 0;
         client_request_state->Request.assign(buffer , buffer + R_received);
-        client_request_state->Request_parser.Parse_Request(client_request_state->Request,*this);
+        client_request_state->Request_parser.Parse_Request(client_request_state->Request,*this,R_received);
         stat = client_request_state->Request_parser.stat_method_form.first;
-        if (client_request_state->Request_parser.stat_method_form.second == POST){
-            std::cout << "POOOOOOOST" << std::endl;
+        if (client_request_state->Request_parser.stat_method_form.second == POST && stat == 200){
+            // std::cout << "POOOOOOOST" << std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);
-
+            Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+            Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
+            client_request_state->Client_Hamr = Response_Still_Serving;
+            client_request_state->Request.clear();
         // Parsing_Post(client_request_state);
         }
         else if (client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE){
-            std::cout << "in get/delete working here !!!!" << std::endl;
-            client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request;
-            std::cout << client_request_state->Request << std::endl;
+            // std::cout << "in get/delete working here !!!!" << std::endl;
+            client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request.first;
+            // std::cout << client_request_state->Request << std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);
             if (client_request_state->Request.find("\r\n\r\n") != std::string::npos || client_request_state->Request.find("\r\n") != std::string::npos) {
             //PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
             Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
             Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
             client_request_state->Client_Hamr = Response_Still_Serving;
+            client_request_state->Request.clear();
         }
         }
     }
