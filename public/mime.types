@@ -57,6 +57,7 @@ application/x-7z-compressed                                                 .7z
 application/x-cocoa                                                         .cco
 application/x-java-archive-diff                                             .jardiff
 application/x-java-jnlp-file                                                .jnlp
+application/x-httpd-php                                                      .php
 application/x-makeself                                                      .run
 application/x-perl                                                          .pl
 application/x-perl                                                          .pm

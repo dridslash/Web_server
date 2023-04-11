@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/10 11:00:58 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/11 18:13:07 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,17 @@ enum check_for_methods{
     NONE = -1
 };
 
-enum file_state{
-    still_reading,
-    readed
+enum body_type{
+    header_body,
+    none,
+    chuncked,
+    normal,
+    body,
+    chuncked_body,
+    normal_body
 };
 
+class Client_Gymir;
 class Derya_Request{
     public:
     Derya_Request();
@@ -42,7 +48,7 @@ class Derya_Request{
     int flag_fill_file;
 
     //FUNCTION PARSING REQUEST
-    int Parse_Request(std::string Request,Server_Master serv,unsigned long R_v);
+    int Parse_Request(Client_Gymir& Client,Server_Master serv,unsigned long R_v);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);
@@ -54,8 +60,10 @@ class Derya_Request{
     std::pair<std::string,std::string> Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Master serv);
 
     //CHECK SIZE OF FILE POSTED
-
     unsigned long check_file_size(std::fstream &file);
+
+    //CHECK FOR CHUNCKED TRANSFER_ENCODING
+    bool is_chuncked();
 
     // client_request_state->Request.substr(0,client_request_state->Request.find("\r\n\r\n"))
 };

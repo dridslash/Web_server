@@ -38,4 +38,5 @@ class Client_Gymir {
         char *PathInfo;
         pid_t c_pid;
         bool IsCGI;
+        std::string FilePath;
 };

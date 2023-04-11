@@ -6,19 +6,21 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/10 14:02:52 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/11 18:15:44 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Derya_Request.hpp"
+#include "Client_Gymir.hpp"
 
 Derya_Request::Derya_Request():HTTPMethod(),Path(),HTTPVersion(),stat_method_form(-1,GET),Hold_sliced_Request(),flag_fill_file(1000),content_length(0){}
 
 Derya_Request::~Derya_Request(){}
 
-int Derya_Request::Parse_Request(std::string Request,Server_Master serv,unsigned long R_v){
+int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigned long R_v){
     std::stringstream get_Request;
-    get_Request << Request;
+    int take_chunck_to_return = 0;
+    get_Request << Client.Request;
     
     //============= GETTING REQUEST LINE =================
     if (flag_fill_file == 1000){
@@ -32,7 +34,7 @@ int Derya_Request::Parse_Request(std::string Request,Server_Master serv,unsigned
     }
     //"========================================
     
-        Hold_sliced_Request = Get_Requets_Header(Request,stat_method_form,serv);
+        Hold_sliced_Request = Get_Requets_Header(Client.Request,stat_method_form,serv);
         if (flag_fill_file != 9000){
         if (Hold_sliced_Request.first.size() > 0){
             // std::cout << "GOT REPLACED" << std::endl;
@@ -51,8 +53,10 @@ int Derya_Request::Parse_Request(std::string Request,Server_Master serv,unsigned
             value.pop_back();
         }else
             break;
-        if (look_for_BWS(key) || isspace(value[0]))
+        if (look_for_BWS(key) || isspace(value[0])){
+            stat_method_form = std::make_pair(400,GET);
             return (400);
+        }
         RequestHeader.insert(std::make_pair(key, value));
     }
     if (HTTPMethod == "GET" && (RequestHeader.find("Content-Length") != RequestHeader.end()
@@ -62,39 +66,49 @@ int Derya_Request::Parse_Request(std::string Request,Server_Master serv,unsigned
         return (400);
     }
     if (HTTPMethod == "POST"){
-        if ((RequestHeader.find("Content-Type") != RequestHeader.end() && RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
+        if (((RequestHeader.find("Content-Length") == RequestHeader.end() && RequestHeader.find("Transfer-Encoding") == RequestHeader.end())) 
+            || (RequestHeader.find("Content-Length") != RequestHeader.end() && RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
+                // std::cout << "Here1!" << std::endl;
                 stat_method_form = std::make_pair(400,POST);
                 return (400);
         }
         else{
-        content_length = stoi(RequestHeader.at("Content-Length"));
-        Post_body_file.open("test" + serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()) ,std::ios::out | std::ios::app);
-        Post_body_file << Hold_sliced_Request.second; 
-        flag_fill_file = 9000;
+            // std::cout << "Here2!" << std::endl;
+                content_length = stoi(RequestHeader.at("Content-Length"));
+                Client.FilePath = "../test";
+                Client.FilePath.append(serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()));
+                Post_body_file.open(Client.FilePath ,std::ios::out | std::ios::app);
+                Post_body_file << Hold_sliced_Request.second; 
+                flag_fill_file = 9000;
+                if (check_file_size(Post_body_file) >= content_length){
+                    Post_body_file.close();
+                    stat_method_form = std::make_pair(200,POST);
+                    return (200);
+                    }
+            }
+        }
+    }
+    else{
+        // std::cout << "Here3!" << std::endl;
+        // std::cout << flag_fill_file << std::endl;
+        // std::cout << Request << std::endl;
+            Post_body_file << Hold_sliced_Request.first;
             if (check_file_size(Post_body_file) >= content_length){
             Post_body_file.close();
             stat_method_form = std::make_pair(200,POST);
             return (200);
-            }
         }
     }
-    }
-    else{
-        // std::cout << flag_fill_file << std::endl;
-        // std::cout << Request << std::endl;
-       Post_body_file << Hold_sliced_Request.first;
-       if (check_file_size(Post_body_file) >= content_length){
-            Post_body_file.close();
-            stat_method_form = std::make_pair(200,POST);
-            return (200);
-       }
-    }
-    //===================================================================
+    
+    //=============================== END_OF_PARSING ====================================
+    
     //  for(std::map<std::string,std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end();it++){
     //     std::cout << "key -->" << it->first << "\nvalue -->" << it->second << std::endl;
     // }
-    //===================================================================
-    // stat_method_form = std::make_pair(200,NONE);
+    //==================================================================================
+    
+    if (HTTPMethod == "GET" || HTTPMethod == "DELETE")
+        stat_method_form = std::make_pair(200,GET);
     return (-1);
 }
 
@@ -147,4 +161,19 @@ unsigned long Derya_Request::check_file_size(std::fstream &file){
     unsigned long size = file.tellg();
     file.seekg(0,std::ios::beg);
     return (size);
+}
+
+bool Derya_Request::is_chuncked(){
+    if (HTTPMethod == "POST" && RequestHeader.find("Content-Length") == RequestHeader.end()){
+        if (RequestHeader.find("Transfer-Encoding") != RequestHeader.end() && RequestHeader.at("Transfer-Encoding") == "chunked"){
+        std::cout << "it is chunked" << std::endl;
+        return true;
+        // flag_fill_file = 8000;
+        }
+    }
+    return false;
+}
+
+bool parsing_chuncked_request(){
+    return false;
 }
