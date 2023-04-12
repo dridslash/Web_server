@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/11 18:13:07 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/12 10:04:15 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,11 @@ enum check_for_methods{
     NONE = -1
 };
 
-enum body_type{
-    header_body,
-    none,
-    chuncked,
-    normal,
-    body,
-    chuncked_body,
-    normal_body
+enum phase{
+    header_with_some_potential_payload,
+    pure_payload,
+    // content_lenght,
+    chuncked
 };
 
 class Client_Gymir;
@@ -45,7 +42,7 @@ class Derya_Request{
     std::pair<int,check_for_methods> stat_method_form;
     std::pair<std::string,std::string> Hold_sliced_Request;
     unsigned long content_length;
-    int flag_fill_file;
+    phase flag_fill_file;
 
     //FUNCTION PARSING REQUEST
     int Parse_Request(Client_Gymir& Client,Server_Master serv,unsigned long R_v);
