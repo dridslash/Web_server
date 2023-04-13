@@ -38,7 +38,7 @@ progress[value] {
 
 #upload-button {
     border-radius: 2rem; 
-    background-color: #f24c0a;
+    background-color: #0a5bf2;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -47,5 +47,5 @@ progress[value] {
   }
   
   #upload-button:hover {
-    background-color: #fb6022;
+    background-color: #0a72f2;
   }

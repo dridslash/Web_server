@@ -22,9 +22,7 @@ class Server_Master {
         int event_tracker;
         int Server_Socket;
         struct kevent *events;
-        
-        
-        
+
         Server_Master();
         ~Server_Master();
         Server_Master(int sk,const char *port);

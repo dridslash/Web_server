@@ -35,8 +35,11 @@ class Client_Gymir {
         int fd[2];
         char Arg0[PATH_MAX];
         char realPATH[PATH_MAX];
-        char *PathInfo;
         pid_t c_pid;
         bool IsCGI;
         std::string FilePath;
+        std::string out;
+        char RequestMethod[BUFFER_SIZE], Status[BUFFER_SIZE], HttpCookie[BUFFER_SIZE];
+        char ContentLength[BUFFER_SIZE], ContentType[BUFFER_SIZE], QueryString1[BUFFER_SIZE];
+        char PathInfo[BUFFER_SIZE], ScriptFileName[BUFFER_SIZE];
 };

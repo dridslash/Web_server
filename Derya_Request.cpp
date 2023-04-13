@@ -56,6 +56,7 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
             return (400);
         RequestHeader.insert(std::make_pair(key, value));
     }
+
     if (HTTPMethod == "GET" && (RequestHeader.find("Content-Length") != RequestHeader.end()
         || RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
         // std::cout << "Bad Request" << std::endl;
@@ -64,20 +65,20 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
     }
     if (HTTPMethod == "POST"){
         if ((RequestHeader.find("Content-Type") != RequestHeader.end() && RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
-                stat_method_form = std::make_pair(400,POST);
+            stat_method_form = std::make_pair(400,POST);
                 return (400);
         }
-        else{
-        content_length = stoi(RequestHeader.at("Content-Length"));
+        else {
+        content_length = stoi(RequestHeader["Content-Length"]);
         Client.FilePath = "../test";
-        Client.FilePath.append(serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()));
+        Client.FilePath.append(serv.getReverseContentType(RequestHeader["Content-Type"].c_str()));
         Post_body_file.open(Client.FilePath ,std::ios::out | std::ios::app);
         Post_body_file << Hold_sliced_Request.second; 
         flag_fill_file = 9000;
             if (check_file_size(Post_body_file) >= content_length){
-            Post_body_file.close();
-            stat_method_form = std::make_pair(200,POST);
-            return (200);
+                Post_body_file.close();
+                stat_method_form = std::make_pair(200,POST);
+                return (200);
             }
         }
     }
@@ -94,7 +95,7 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
     }
     //===================================================================
     //  for(std::map<std::string,std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end();it++){
-    //     std::cout << "key -->" << it->first << "\nvalue -->" << it->second << std::endl;
+    //     std::cout << it->first << ": " << it->second << std::endl;
     // }
     //===================================================================
     if (HTTPMethod == "GET" || HTTPMethod == "DELETE")

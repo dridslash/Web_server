@@ -1,15 +1,19 @@
 #!/usr/bin/perl
 
-use strict;
-use warnings;
+use CGI;
 
-print "Content-type: text/html\n\n";
+my $cgi = CGI->new;
 
-print "<html>\n";
-print "<head>\n";
-print "<title>Hello CGI!</title>\n";
-print "</head>\n";
-print "<body>\n";
-print "<h1>Hello CGI!</h1>\n";
-print "</body>\n";
-print "</html>\n";
+print $cgi->header("text/html");
+
+if ($cgi->request_method eq "GET") {
+  print "Name: " . $cgi->param("name") . "<br>";
+  print "Email: " . $cgi->param("email") . "<br>";
+}
+elsif ($cgi->request_method eq "POST") {
+  print "Name: " . $cgi->param("name") . "<br>";
+  print "Email: " . $cgi->param("email") . "<br>";
+}
+else {
+  print "Invalid request method";
+}

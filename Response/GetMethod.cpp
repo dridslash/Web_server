@@ -14,7 +14,7 @@ int Response::GetMethod(Client_Gymir* & Client, Server_Master& Server, std::stri
         StatusCode = IsDirHaveIndexFiles(Server.conf);
         if (StatusCode != 200) return StatusCode;
     }
-    StatusCode = IfLocationHaveCGI(Client, Server);
+    StatusCode = HandleCGIprogram(Client, Server);
     return StatusCode;
 }
 

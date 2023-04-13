@@ -15,13 +15,25 @@ int Response::PostMethod(Client_Gymir* & Client, Server_Master& Server, std::str
     if (getResourceType()) { // if it's directory
         StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
-        // StatusCode = IsDirHaveIndexFiles(Server.conf);
-        // if (StatusCode != 200) return StatusCode;
+        StatusCode = IsDirHaveIndexFiles(Server.conf);
+        if (StatusCode != 200) return StatusCode;
     }
-    if (IfLocationHaveCGI(Client, Server) == 0) return StatusCode;
     struct stat sb;
-    std::string NewPath = Path;
-    NewPath.append(get_time().c_str() + Client->FilePath.substr(Client->FilePath.find_last_of(".")));
-    rename(Client->FilePath.c_str(), NewPath.c_str());
-    return 201;
+    if (stat(Client->FilePath.c_str(), &sb) == 0) {
+        NewPath = Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->upload_pass + "/";
+        if (stat(NewPath.c_str(), &sb)) {
+            if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->root.size())
+                NewPath = Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->root + "/";
+            else
+                NewPath = Server.conf.Servers[LocationIndex->first].root + "/";
+        }
+        std::string PathFile = Client->FilePath.substr(2);
+        NewPath.append(get_time().c_str());
+        if (PathFile.find(".") != std::string::npos)
+            NewPath.append(PathFile.substr(PathFile.find(".")));
+        rename(Client->FilePath.c_str(), NewPath.c_str());
+        remove(Client->FilePath.c_str());
+    }
+    StatusCode = HandleCGIprogram(Client, Server);
+    return StatusCode;
 }

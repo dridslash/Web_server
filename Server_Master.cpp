@@ -46,7 +46,7 @@ std::string Server_Master::getContentType(const char* resp) {
 }
 
 std::string Server_Master::getReverseContentType(const char* resp) {
-	std::string Default = ".html";
+	std::string Default = "";
     for (std::map<std::string, std::string>::iterator formula = ContentTypes.begin(); formula != ContentTypes.end(); formula++) {
         if (formula->second == resp)
             return formula->first;
@@ -60,7 +60,7 @@ Server_Master::Server_Master(int sk,const char *port):Server_Socket(sk){
     memset(changelist,0,sizeof(changelist));
 }
 
-void Server_Master::Change_Socket_To_Non_Block(int &fd){
+void Server_Master::Change_Socket_To_Non_Block(int &fd) {
     if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0)
         perror("FCNTL Error");
 }
@@ -170,8 +170,9 @@ void Server_Master::Sending_Part(struct kevent *retreived_events, int how_many_e
                 it->second->ResponsePath.CheckRequestLine(conf, it->second->Request_parser);
                 it->second->ResponsePath.MakeResponse(it->second, *this, it->second->Request_parser);
             }
-            if (it->second->ResponsePath.getStatusCode() != -1)
+            if (it->second->ResponsePath.getStatusCode() != -1) {
                 it->second->ResponsePath.SendResponse(it->second, *this);
+            }
             else it->second->ResponsePath.setStatusCode(200);
             if (it->second->Client_Hamr == Response_Completed) DropClient(it);
             else it++;
@@ -195,6 +196,7 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
         if (client_request_state->Request_parser.stat_method_form.second == POST && stat == 200){
             // std::cout << "POOOOOOOST" << std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);
+            PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
             Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
             Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
             client_request_state->Client_Hamr = Response_Still_Serving;
@@ -202,17 +204,16 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
         // Parsing_Post(client_request_state);
         }
         else if (client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE){
-            std::cout << "in get/delete working here !!!!" << std::endl;
+            // std::cout << "in get/delete working here !!!!" << std::endl;
             client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request.first;
-            // std::cout << "Stat: " << stat << std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);
             if (client_request_state->Request.find("\r\n\r\n") != std::string::npos || client_request_state->Request.find("\r\n") != std::string::npos) {
-            PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
-            Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
-            Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
-            client_request_state->Client_Hamr = Response_Still_Serving;
-            client_request_state->Request.clear();
-        }
+                PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
+                Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+                Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
+                client_request_state->Client_Hamr = Response_Still_Serving;
+                client_request_state->Request.clear();
+            }
         }
     }
     return 0;
@@ -256,7 +257,7 @@ void Server_Master::Print_Connection_Info() {
 }
 
 void Server_Master::Add_Client(Client_Gymir *client_copy){
-    Change_Socket_To_Non_Block(client_copy->Client_Socket);
+    // Change_Socket_To_Non_Block(client_copy->Client_Socket);
     Add_Event_to_queue_ker(client_copy->Client_Socket,EVFILT_READ);
     client_copy->Set_up_ip_port();
     Clients.insert(std::make_pair(client_copy->Client_Socket,client_copy));
@@ -323,11 +324,11 @@ void Server_Master::PrintStatus(int fd, const char* HTTPMethod, std::string Path
         std::cout << "     [  Server  ]     [INFO]          Initializing Servers..." << std::endl;
 }
 
-void Server_Master::Parsing_Post(Client_Gymir* client_request_state) {
-    if (client_request_state->Request_parser.HTTPMethod.compare("POST") == 0){
-        std::cout << client_request_state->Request << std::endl;
-        // std::cout << client_request_state->Request <<std::endl;
-            // std::cout << "it's a post Method change parsing method" << std::endl;
-            // std::cout << client_request_state->Request_parser.RequestHeader.find("Content-Length")->second << std::endl;
-    }
-}
+// void Server_Master::Parsing_Post(Client_Gymir* client_request_state) {
+//     if (client_request_state->Request_parser.HTTPMethod.compare("POST") == 0){
+//         std::cout << client_request_state->Request << std::endl;
+//         // std::cout << client_request_state->Request <<std::endl;
+//             // std::cout << "it's a post Method change parsing method" << std::endl;
+//             // std::cout << client_request_state->Request_parser.RequestHeader.find("Content-Length")->second << std::endl;
+//     }
+// }
