@@ -109,3 +109,5 @@ video/x-ms-asf                                                              .asx
 video/x-ms-asf                                                              .asf
 video/x-ms-wmv                                                              .wmv
 video/x-msvideo                                                             .avi
+text/x-c                                                                    .c
+text/x-c                                                                    .cpp

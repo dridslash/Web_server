@@ -6,7 +6,7 @@
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/12 10:04:15 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/13 13:58:54 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ class Derya_Request{
     std::pair<int,check_for_methods> stat_method_form;
     std::pair<std::string,std::string> Hold_sliced_Request;
     unsigned long content_length;
+    unsigned long chuncked_size;
+    unsigned long margin_chuncked;
     phase flag_fill_file;
 
     //FUNCTION PARSING REQUEST
@@ -63,4 +65,5 @@ class Derya_Request{
     bool is_chuncked();
 
     // client_request_state->Request.substr(0,client_request_state->Request.find("\r\n\r\n"))
+    int parseReq(Client_Gymir& Client);
 };

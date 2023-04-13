@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client_Gymir.cpp                                    :+:      :+:    :+:  */
+/*   Client_Gymir.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:59:52 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/07 16:29:55 by mnaqqad          ###   ########.fr       */
+/*   Updated: 2023/04/13 18:16:26 by mnaqqad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,9 @@ Client_Gymir* Client_Gymir::Draupnir_Smár(int sockcl){
 
 //-----------------------------------------
 
-Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request() {}
+Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), chunkedSize(1),  OldChunked(0), RequestSize(0) {}
 
-Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request() {}
+Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), chunkedSize(1), OldChunked(0), RequestSize(0) {}
 
 Client_Gymir::~Client_Gymir() {}
 

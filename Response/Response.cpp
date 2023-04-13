@@ -185,8 +185,8 @@ void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya
         if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
     }
-    if (HTTPMethod == "POST")
-        remove(Client->FilePath.c_str());
+    // if (HTTPMethod == "POST")
+        // remove(Client->FilePath.c_str());
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios_base::end);
     Client->FileLength = Client->binaryFile.tellg();

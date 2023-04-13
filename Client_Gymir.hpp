@@ -39,4 +39,9 @@ class Client_Gymir {
         pid_t c_pid;
         bool IsCGI;
         std::string FilePath;
+        std::string chuncked_vr;
+        std::string chunkedBuffer;
+        unsigned long RequestSize;
+        unsigned long chunkedSize;
+        unsigned long OldChunked;
 };
