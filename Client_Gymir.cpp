@@ -20,9 +20,9 @@ Client_Gymir* Client_Gymir::Draupnir_Smár(int sockcl){
 
 //-----------------------------------------
 
-Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), chunkedSize(1),  OldChunked(0), RequestSize(0) {}
+Client_Gymir::Client_Gymir():Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), ChunkedSize(-2), RequestSize(0) {}
 
-Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), chunkedSize(1), OldChunked(0), RequestSize(0) {}
+Client_Gymir::Client_Gymir(int sockcl):Client_Socket(sockcl), Client_Hamr(Still_Reading_Request), Bytes_received(0), Bytes_Sended(0), IsHeaderSended(false) , Request(), ChunkedSize(-2), RequestSize(0) {}
 
 Client_Gymir::~Client_Gymir() {}
 

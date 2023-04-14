@@ -22,21 +22,42 @@ unsigned long convert_from_hex(std::string i){
 }
 
 int Derya_Request::parseReq(Client_Gymir& Client) {
-    if (Client.chunkedSize + 20 < Client.RequestSize) {
-        Client.chunkedBuffer = Client.chuncked_vr.substr(Client.chunkedSize + 2);
+    int BufferSize = Client.chunckedRequest.size();
+    if (BufferSize < 6)
+        return 1;
+    if (Client.ChunkedSize < 0) {
+        if (Client.ChunkedSize == -2)
+            Client.chunkedBuffer = Client.chunckedRequest;
+        else
+            Client.chunkedBuffer = Client.chunckedRequest.substr(2);
+        Client.chunckedRequest = Client.chunkedBuffer.substr(Client.chunkedBuffer.find("\r\n") + 2);
+        BufferSize = Client.chunckedRequest.size();
         Client.chunkedBuffer = Client.chunkedBuffer.substr(0, Client.chunkedBuffer.find("\r\n"));
-        Client.OldChunked = Client.chuncked_vr.substr(0, Client.chunkedSize).size();
-        Client.chuncked_vr.erase(Client.chunkedSize, Client.chunkedBuffer.size() + 4);
-        Post_body_file << Client.chuncked_vr;
-        Client.chuncked_vr.clear();
-        Client.chunkedSize = convert_from_hex(Client.chunkedBuffer);
-        if (Client.chunkedSize == 0) return 1;
-        Client.chunkedSize -= Client.OldChunked;
+        Client.ChunkedSize = static_cast<int>(convert_from_hex(Client.chunkedBuffer));
     }
+    if (Client.ChunkedSize == 0)
+        return 1;
+    else if (Client.ChunkedSize < BufferSize) {
+        Post_body_file << Client.chunckedRequest.substr(0, Client.ChunkedSize);
+        Client.chunckedRequest = Client.chunckedRequest.substr(Client.ChunkedSize);
+        BufferSize = Client.chunckedRequest.size();
+        Client.ChunkedSize = -1;
+    }
+    else {
+        Post_body_file << Client.chunckedRequest;
+        Client.ChunkedSize -= BufferSize;
+        if (!Client.ChunkedSize) Client.ChunkedSize = -1;
+        Client.chunckedRequest.clear();
+        BufferSize = 0;
+    }
+    if (BufferSize > 5 && Client.chunckedRequest[2] == '0')
+        return 1;
+    if (Client.returnRead < Max_Reads && Client.chunckedRequest.size())
+        if (parseReq(Client)) return 1;
     return 0;
 }
 
-Derya_Request::Derya_Request():HTTPMethod(),Path(),HTTPVersion(),stat_method_form(-1,GET),Hold_sliced_Request(),flag_fill_file(header_with_some_potential_payload),content_length(0),chuncked_size(0){}
+Derya_Request::Derya_Request(): HTTPMethod(),Path(),HTTPVersion(),stat_method_form(-1,GET),Hold_sliced_Request(),flag_fill_file(header_with_some_potential_payload),content_length(0),chuncked_size(0){}
 
 Derya_Request::~Derya_Request(){}
 
@@ -101,13 +122,11 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
                 return (400);
         }
         else{
-            // std::cout << "Here2!" << std::endl;
                 if (RequestHeader.find("Content-Length") != RequestHeader.end()){
                     content_length = stoi(RequestHeader.at("Content-Length"));
                     Client.FilePath = "../test";
                     Client.FilePath.append(serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()));
                     Post_body_file.open(Client.FilePath ,std::ios::out | std::ios::app);
-                    Post_body_file << Hold_sliced_Request.second; 
                     flag_fill_file = pure_payload;
                     if (check_file_size(Post_body_file) >= content_length){
                         Post_body_file.close();
@@ -123,29 +142,8 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
                     Client.FilePath = "../test";
                     Client.FilePath.append(serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()));
                     Post_body_file.open(Client.FilePath ,std::ios::out | std::ios::app);
-                    // margin_chuncked = R_v;
-                    // chuncked_size = 0;
-                    // unsigned long i = stoi(Hold_sliced_Request.second.substr(0,Hold_sliced_Request.second.find("\r\n")));
-                    // std::cout << "here" << i << std::endl;
-                    // std::cout << Hold_sliced_Request.second.substr(0,Hold_sliced_Request.second.find("\r\n")) << std::endl;
-                    // std::cout << Hold_sliced_Request.second.erase(0,Hold_sliced_Request.second.find("\r\n")) << std::endl;
-                    // std::cout << R_v << std::endl;
-                    Client.chuncked_vr.append(Hold_sliced_Request.second);
-                    std::cout << "chuncked" << std::endl;
-                    Client.RequestSize = Client.chuncked_vr.size();
-                    Client.chunkedBuffer = Client.chuncked_vr.substr(0, Client.chuncked_vr.find("\r\n"));
-                    Client.chuncked_vr = Client.chuncked_vr.substr(Client.chunkedBuffer.size() + 2);
-                    Client.chunkedSize = convert_from_hex(Client.chunkedBuffer);
-                    Client.RequestSize -= Client.chunkedBuffer.size() + 2;
-                    if (parseReq(Client) == 1){
-                        Post_body_file << Client.chuncked_vr;
-                        Post_body_file.close();
-                        stat_method_form = std::make_pair(200,POST);
-                        return (200);
-                    }
-                    if (R_v <= 0 || R_v < Max_Reads) {
-                        if (Client.chunkedSize < Client.RequestSize) return 0;
-                        Post_body_file << Client.chuncked_vr;
+                    Client.chunckedRequest.append(Hold_sliced_Request.second);
+                    if (parseReq(Client) == 1) {
                         Post_body_file.close();
                         stat_method_form = std::make_pair(200,POST);
                         return (200);
@@ -154,10 +152,7 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
             }
         }
     }
-    else{
-        // std::cout << "Here3!" << std::endl;
-        // std::cout << flag_fill_file << std::endl;
-        // std::cout << Request << std::endl;
+    else {
             if (flag_fill_file == pure_payload){
                 Post_body_file << Hold_sliced_Request.first;
                 if (check_file_size(Post_body_file) >= content_length){
@@ -166,26 +161,14 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv,unsigne
                     return (200);
                 }
             }else if (flag_fill_file == chuncked){
-                // std::cout << Client.chuncked_vr << std::endl;
-                Client.chuncked_vr.append(Hold_sliced_Request.first);
+                Client.chunckedRequest.append(Hold_sliced_Request.first);
                 std::cout << "chuncked continue" << std::endl;
-                Client.RequestSize = Client.chuncked_vr.size();
                 if (parseReq(Client) == 1) {
-                    Post_body_file << Client.chuncked_vr;
                     Post_body_file.close();
                     stat_method_form = std::make_pair(200,POST);
                     return (200);
                 }
-                if (R_v <= 0 || R_v < Max_Reads) {
-                    if (Client.chunkedSize < Client.RequestSize) return 0;
-                    Post_body_file << Client.chuncked_vr;
-                    Post_body_file.close();
-                    stat_method_form = std::make_pair(200,POST);
-                    return (200);
-                }
-                // exit(1);
             }
-                    std::cout << "Before Parse" << std::endl;
     }
     
     //=============================== END_OF_PARSING ====================================

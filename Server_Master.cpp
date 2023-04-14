@@ -184,26 +184,21 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
     char buffer[Max_Reads + 1];
     memset(buffer,0,Max_Reads);
     int stat = 0;
-    std::cout << "Stat: " << stat << std::endl;
     if (client_request_state->Client_Hamr == Still_Reading_Request) {
-        std::cout << "Stat1: " << stat << std::endl;
-        int R_received = recv(client_request_state->Client_Socket,buffer, Max_Reads, 0);
-            std::cout << client_request_state->chunkedSize << std::endl;
-            std::cout << client_request_state->RequestSize << std::endl;
-        if (R_received <= 0)
+        client_request_state->returnRead = recv(client_request_state->Client_Socket,buffer, Max_Reads, 0);
+        if (client_request_state->returnRead <= 0)
         {
             std::cout << "return 12" << std::endl;
             return 1;
         }
-        //client_request_state->Bytes_received += R_received;
-        buffer[R_received] = 0;
-        client_request_state->Request.assign(buffer , buffer + R_received);
-        // client_request_state->chuncked_vr.append(buffer);
-        client_request_state->Request_parser.Parse_Request(*client_request_state,*this,R_received);
+        //client_request_state->Bytes_received += client_request_state->returnRead;
+        buffer[client_request_state->returnRead] = 0;
+        client_request_state->Request.assign(buffer , buffer + client_request_state->returnRead);
+        client_request_state->Request_parser.Parse_Request(*client_request_state,*this,client_request_state->returnRead);
         stat = client_request_state->Request_parser.stat_method_form.first;
         if (client_request_state->Request_parser.stat_method_form.second == POST && (stat == 200 || stat == 400)){
 
-            // std::cout << "POOOOOOOST ---> state ---> " << stat <<  std::endl;
+            std::cout << "POOOOOOOST ---> state ---> " << stat <<  std::endl;
             client_request_state->ResponsePath.setStatusCode(stat);
             Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
             Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);

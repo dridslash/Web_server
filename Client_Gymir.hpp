@@ -38,10 +38,10 @@ class Client_Gymir {
         char *PathInfo;
         pid_t c_pid;
         bool IsCGI;
+        int returnRead;
         std::string FilePath;
-        std::string chuncked_vr;
+        std::string chunckedRequest;
         std::string chunkedBuffer;
         unsigned long RequestSize;
-        unsigned long chunkedSize;
-        unsigned long OldChunked;
+        int ChunkedSize;
 };

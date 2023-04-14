@@ -63,10 +63,9 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 
 int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Derya_Request& request) {
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
-    if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
-        return 501;
     if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
+    std::cout << "2StatusCode: " << StatusCode << std::endl;
     // std::ifstream in_file("Body.txt");
     // in_file.seekg(0, std::ios::end);
     // int file_size = in_file.tellg();
@@ -157,6 +156,7 @@ int Response::IsDirHaveIndexFiles(Config config) {
 }
 
 int Response::CheckRequestLine(Config config, Derya_Request& request) {
+    std::cout << "0StatusCode: " << StatusCode << std::endl;
     Path = request.Path;
     HTTPMethod = request.HTTPMethod;
     HTTPVersion = request.HTTPVersion;
@@ -179,14 +179,15 @@ int Response::CheckRequestLine(Config config, Derya_Request& request) {
 }
 
 void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya_Request& requestFile) {
+    std::cout << "StatusCode: " << StatusCode << std::endl;
     if (StatusCode == 200) {
         StatusCode = getResponsePath(Client, Server, requestFile);
         if (StatusCode == -1) return;
         if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
     }
-    // if (HTTPMethod == "POST")
-        // remove(Client->FilePath.c_str());
+    if (HTTPMethod == "POST")
+        remove(Client->FilePath.c_str());
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios_base::end);
     Client->FileLength = Client->binaryFile.tellg();
