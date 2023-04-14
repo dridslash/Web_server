@@ -2,10 +2,10 @@ NAME    =	Webserv
 
 SRC    =	*.cpp Response/*.cpp Config/*.cpp
 
-GCC		=	c++ -fsanitize=address -g #-Wall -Wextra -Werror -std=c++98
+GCC		=	c++ -Wall -Wextra -Werror -std=c++98
 
 all: $(NAME)
-$(NAME):   $(SC_VEC)
+$(NAME):	$(SRC)
 	@$(GCC) $(SRC) -o $(NAME)
 	@echo "\033[1;35m▐▌ DONE ▐▌"
 
@@ -21,6 +21,6 @@ clean:
 fclean: clean
 	@$(RM) $(NAME) autoindex.html
 
-re:    fclean all
+re:   fclean all
 
 .PHONY: fclean clean re

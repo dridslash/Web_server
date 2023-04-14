@@ -1,7 +1,6 @@
 #pragma once
-#include "../header.hpp"
+#include "../Config/ConfigFile.hpp"
 
-class Config;
 class Server_Master;
 class Derya_Request;
 class Client_Gymir;
@@ -9,6 +8,7 @@ class Response {
     private:
         std::string HTTPMethod;
         std::string Path;
+        std::string NewPath;
         std::string HTTPVersion;
         std::string QueryString;
         std::ofstream Body;
@@ -20,6 +20,8 @@ class Response {
         std::string Header;
         std::ofstream File;
         std::string StatusLine;
+        char* ev[9];
+        std::string envi[8];
     public:
         Response();
         ~Response();
@@ -43,16 +45,16 @@ class Response {
         int getResourceType();
         int IsURIHasSlashAtTheEnd(std::string OldPath);
         int IsDirHaveIndexFiles(Config );
-        int IfLocationHaveCGI(Client_Gymir* Client, Server_Master& Server);
+        int HandleCGIprogram(Client_Gymir* Client, Server_Master& Server);
         void ResponseFile(std::string &, Config, Derya_Request&);
         int RemoveDirectory(std::string);
         std::string getDesc();
         int CheckRequestLine(Config config, Derya_Request& request);
         void MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya_Request& requestFile);
         void SendResponse(Client_Gymir* & Client, Server_Master& Server);
-        int ParseBody(char* buffer, Server_Master& Server);
-        int InitCGI(Client_Gymir* Client, Config config);
+        int ParseBody(std::string buffer, Server_Master& Server);
+        int HandleExec(Client_Gymir* Client, Config config);
         void InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server);
-        bool look_for_BWS(std::string field_name);
-        int ParseCGIHeaders(char* buffer);
+        int ParseCGIHeaders(std::string buffer);
+        void SetEnv(std::string& exec, Client_Gymir& Client, Config config);
 };

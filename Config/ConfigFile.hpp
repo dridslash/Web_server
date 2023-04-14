@@ -8,6 +8,7 @@ class LocationBlocks {
     ~LocationBlocks();
     std::string                 path;
     std::string                 root;
+    std::string                 upload_pass;
     std::string                 AutoIndex;
     std::vector<std::string>*   httpmethods;
     std::vector<std::string>*   index;
@@ -16,6 +17,7 @@ class LocationBlocks {
     std::map<std::string, std::string>*   CGI;
     void setAutoIndex(std::string);
     void setRoot(std::string);
+    void setUploadRoot(std::string);
     void setCGI(std::pair<std::string, std::string>);
     void setMethods(std::vector<std::string>);
     void setIndex(std::vector<std::string>);
@@ -29,7 +31,7 @@ class ServerBlocks {
     std::vector<LocationBlocks*>            Locations;
     std::string                             ServerName;
     std::string                             root;
-    std::vector<std::string>                listen;
+    std::map<std::string, std::string>      listen;
     std::vector<std::string>                index;
     std::map<std::set<int>, std::string>    ErrorPage;
     void setIndex(std::vector<std::string>);

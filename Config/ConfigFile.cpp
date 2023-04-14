@@ -1,5 +1,7 @@
 #include "ConfigFile.hpp"
 
+
+
 LocationBlocks::LocationBlocks() : AutoIndex("off") {
     httpmethods = new std::vector<std::string>();
     index = new std::vector<std::string>();
@@ -18,6 +20,7 @@ LocationBlocks::~LocationBlocks() {
 
 void LocationBlocks::setAutoIndex(std::string str) { AutoIndex = str; }
 void LocationBlocks::setRoot(std::string str) { root = str; }
+void LocationBlocks::setUploadRoot(std::string str) { upload_pass = str; }
 void LocationBlocks::setMethods(std::vector<std::string> str) { httpmethods->assign(str.begin(), str.end()); }
 void LocationBlocks::setCGI(std::pair<std::string, std::string> str) { CGI->insert(str); }
 void LocationBlocks::setIndex(std::vector<std::string> str) { index->assign(str.begin(), str.end()); }
@@ -25,7 +28,8 @@ void LocationBlocks::setTryFiles(std::vector<std::string> str) { try_files->assi
 void LocationBlocks::setReturn(std::vector<std::string> str) { Return->assign(str.begin(), str.end()); }
 
 
-ServerBlocks::ServerBlocks() : listen(1, "80") {
+ServerBlocks::ServerBlocks() {
+    listen.insert(std::make_pair("", "80"));
     std::set<int> s;
     s.insert(201);
     ErrorPage.insert(std::make_pair(s, "/html/201.html"));
@@ -109,7 +113,7 @@ Config::ErrorBox    Config::LocationBlock(LocationBlocks * location, ServerBlock
         if (Store[i] == "cgi_param" || Store[i] == "try_files" || Store[i] == "httpmethods" || Store[i] == "return" || Store[i] == "index") {
             r = DirectivesMoreThanOneValue(location, server, Store, i, 1);
             if (r.second) return r;
-        } else if (Store[i] == "root" || Store[i] == "autoindex") {
+        } else if (Store[i] == "root" || Store[i] == "autoindex" || Store[i] == "upload_pass") {
             r = DirectivesOneValue(location, server, Store, i, 1);
             if (r.second) return r;
         }
@@ -142,7 +146,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             // if their is more than one value, then
             while (Store[++i].find(';') == std::string::npos) {
                 if (!Dir && Store[i].size() != strspn(Store[i].c_str(), "0123456789")) return std::make_pair(std::make_pair("error_page", Store[i]), 1);
-                if (!Dir && (stoi(Store[i]) < 300 || stoi(Store[i]) > 599)) return std::make_pair(std::make_pair("error_page", Store[i]), -2);
+                if (!Dir && (atoi(Store[i].c_str()) < 300 || atoi(Store[i].c_str()) > 599)) return std::make_pair(std::make_pair("error_page", Store[i]), -2);
                 if (Directives.find(Store[i]) != Directives.end()) return std::make_pair(std::make_pair(Directive, Store[i]), 1);
                 Values.push_back(Store[i]);
             }
@@ -153,7 +157,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
                 std::set<int> ValueOfSet;
                 for (size_t i = 0; i < Values.size() - 1; i++) {
                     if (Values[i].size() != strspn(Values[i].c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
-                    int var = stoi(Values[i]);
+                    int var = atoi(Values[i].c_str());
                     if (var < 300 || var > 599) return std::make_pair(std::make_pair(Store[i+1], Store[i]), -2);
                     ValueOfSet.insert(var);
                 }
@@ -188,7 +192,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             if (Dir == 3) {
                 if (Values.size() > 2) return std::make_pair(std::make_pair("return", Store[i-1]), 1);
                 if (Values[0].size() != strspn(Values[0].c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 1);
-                if (stoi(Values[0]) < 0 || stoi(Values[0]) > 999) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 4);
+                if (atoi(Values[0].c_str()) < 0 || atoi(Values[0].c_str()) > 999) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 4);
             }
             if (Dir == 1) {
                 for (size_t i = 1; i < Values.size(); i++) {
@@ -218,20 +222,31 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
         MaxBodySize = Value;
     }
     else if (FLAG == 0) {
-        void (ServerBlocks::*arr[4])( std::string ) = {NULL, &ServerBlocks::setServerName, &ServerBlocks::setRoot};
+        void (ServerBlocks::*arr[3])( std::string ) = {NULL, &ServerBlocks::setServerName, &ServerBlocks::setRoot};
         int Dir = (Store[i-1] == "listen") * 0 + (Store[i-1] == "server_name") * 1 + (Store[i-1] == "root") * 2;
         if (Dir == 2 && (Value != "./public" && Value == "/public" && Value == "public")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
         else if (Dir) (server.*arr[Dir])(Value);
         else {
-            if (Value.size() != strspn(Value.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
-            if (stoi(Value) > 65535 || stoi(Value) <= 0) return std::make_pair(std::make_pair(Store[i-1], Value), 3);
-            server.listen.push_back(Value);
-            Ports.insert(Value);
+            std::string Port;
+            std::string Host = "";
+            if (Value.find(":") != std::string::npos) {
+                Host = Value.substr(0, Value.find(":"));
+                Port = Value.substr(Value.find(":") + 1);
+            }
+            else Port = Value;
+            if (Port.size() != strspn(Port.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
+            if (atoi(Port.c_str()) > 65535 || atoi(Port.c_str()) <= 0) return std::make_pair(std::make_pair(Store[i-1], Port), 3);
+            server.listen.insert(std::make_pair(Port, Host));
+            if (server.listen.find("80") != server.listen.end())
+                server.listen.erase(server.listen.find("80"));
+            Ports.insert(Port);
+            if (Ports.find("80") != Ports.end())
+                Ports.erase("80");
         }
     } else {
-        void (LocationBlocks::*arr[2])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex};
-        int Dir =(Store[i-1] == "root") * 0 + (Store[i-1] == "autoindex") * 1;
-        if (Dir && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
+        void (LocationBlocks::*arr[3])( std::string ) = {&LocationBlocks::setRoot, &LocationBlocks::setAutoIndex, &LocationBlocks::setUploadRoot};
+        int Dir =(Store[i-1] == "root") * 0 + (Store[i-1] == "autoindex") * 1 + (Store[i-1] == "upload_pass") * 2;
+        if (Dir == 1 && Value != "on" && Value != "off") return std::make_pair(std::make_pair(Store[i-1], Value), 2);
         (location->*arr[Dir])(Value);
     }
     if (IstillHave.length() == 0) i++;

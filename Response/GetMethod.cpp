@@ -1,6 +1,3 @@
-#include "Response.hpp"
-#include "../Derya_Request.hpp"
-#include "../Config/ConfigFile.hpp"
 #include "../Client_Gymir.hpp"
 #include "../Server_Master.hpp"
 
@@ -17,7 +14,7 @@ int Response::GetMethod(Client_Gymir* & Client, Server_Master& Server, std::stri
         StatusCode = IsDirHaveIndexFiles(Server.conf);
         if (StatusCode != 200) return StatusCode;
     }
-    StatusCode = IfLocationHaveCGI(Client, Server);
+    StatusCode = HandleCGIprogram(Client, Server);
     return StatusCode;
 }
 

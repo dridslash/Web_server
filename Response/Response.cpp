@@ -1,9 +1,5 @@
-#include "Response.hpp"
-#include "../Derya_Request.hpp"
-#include "../Config/ConfigFile.hpp"
 #include "../Client_Gymir.hpp"
 #include "../Server_Master.hpp"
-
 
 Response::Response() : StatusCode(200) { LocationIndex = new std::pair<int, int>(-1, -1); }
 Response::~Response() { delete LocationIndex; }
@@ -19,24 +15,44 @@ void Response::setStatusCode(int code) { StatusCode = code; }
 std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
     std::string LocationPath;
     int ServerThatMatchIndex = -1;
-    std::map<int, ServerBlocks> ServersThatMatchThePort;
+    std::map<int, std::pair<ServerBlocks, std::string> > ServersThatMatchThePort;
     std::map<std::string, int> LocationsThatMatchTheURI;
     // Storing the servers that matching the port
     for (size_t i = 0; i < config.Servers.size(); i++) {
-        for (size_t j = 0; j < config.Servers[i].listen.size(); j++) {
-            if (config.Servers[i].listen[j] == Port)
-                ServersThatMatchThePort.insert(std::make_pair(int(i), config.Servers[i]));
+        for (std::map<std::string, std::string>::iterator it = config.Servers[i].listen.begin(); it != config.Servers[i].listen.end(); it++) {
+            if (it->first == Port)
+                ServersThatMatchThePort.insert(std::make_pair(int(i), std::make_pair(config.Servers[i], it->second)));
         }
     }
-    // get the Server that most matching the request
-    for (std::map<int, ServerBlocks>::iterator it = ServersThatMatchThePort.begin(); it != ServersThatMatchThePort.end(); it++) {
-        if (it->second.ServerName == "localhost" && Host == "127.0.0.1") {
+    // get the Server that most matching the request by Host
+    std::map<int, std::pair<ServerBlocks, std::string> >::iterator it = ServersThatMatchThePort.begin();
+    for (; it != ServersThatMatchThePort.end();) {
+        if ((it->second.second == "localhost" || it->second.second == "127.0.0.1") && Host == "127.0.0.1") {
             ServerThatMatchIndex = it->first;
             break;
         }
-        if (it->second.ServerName == Host || ServersThatMatchThePort.size() == 1) {
+        if (it->second.second == Host || ServersThatMatchThePort.size() == 1) {
             ServerThatMatchIndex = it->first;
             break;
+        }
+        if (it->second.second != "") {
+            std::map<int, std::pair<ServerBlocks, std::string> >::iterator ite = it;
+            it++;
+            ServersThatMatchThePort.erase(ite);
+        }
+        else it++;
+    }
+    if (ServerThatMatchIndex == -1) {
+        // get the Server that most matching the request by ServerName
+        for (it = ServersThatMatchThePort.begin(); it != ServersThatMatchThePort.end(); it++) {
+            if (it->second.first.ServerName == "localhost" && Host == "127.0.0.1") {
+                ServerThatMatchIndex = it->first;
+                break;
+            }
+            if (it->second.first.ServerName == Host || ServersThatMatchThePort.size() == 1) {
+                ServerThatMatchIndex = it->first;
+                break;
+            }
         }
     }
     // if there is no one match in server_name, then the server is the first one of "ServersThatMatchThePort"
@@ -66,15 +82,14 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 
 int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Derya_Request& request) {
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
-    if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
-        return 501;
-    if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
+    if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST") // Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
-    // std::ifstream in_file("Body.txt");
-    // in_file.seekg(0, std::ios::end);
-    // int file_size = in_file.tellg();
-    // if (file_size > stoi(Server.conf.MaxBodySize))// Request Body too large
-    //     return 413;
+    std::ifstream in_file(Client->FilePath.c_str());
+    in_file.seekg(0, std::ios::end);
+    int file_size = in_file.tellg();
+    if (file_size > atoi(Server.conf.MaxBodySize.c_str()))// Request Body too large
+        return 413;
+    in_file.close();
     delete LocationIndex;
     LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(Server.conf));
     if (LocationIndex->first == -1) // Location not found (Client Error)
@@ -111,6 +126,10 @@ void Response::HandleErrorPages(Config config) {
 int Response::getResourcePath(Config config) {
     struct stat sb;
     const char* RootDir;
+    if (Path.find("?") != std::string::npos) {
+        QueryString = Path.substr(Path.find("?") + 1);
+        Path = Path.substr(0, Path.find("?"));
+    }
     if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->root.size()) RootDir = config.Servers[LocationIndex->first].Locations[LocationIndex->second]->root.c_str();
     else RootDir = config.Servers[LocationIndex->first].root.c_str();
 	if (stat(RootDir, &sb)) return 404;
@@ -130,7 +149,7 @@ int Response::getResourceType() {
 }
 
 int Response::IsURIHasSlashAtTheEnd(std::string OldPath) {
-    if (Path.back() != '/') {
+    if (Path[Path.length() - 1] != '/') {
         Path = OldPath;
         Path.append("/");
         if (HTTPMethod == "DELETE")
@@ -188,6 +207,8 @@ void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya
         if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
     }
+    if (HTTPMethod == "POST")
+        remove(Client->FilePath.c_str());
     Client->binaryFile.open(Path.c_str(), std::ios::binary);
     Client->binaryFile.seekg(0, std::ios_base::end);
     Client->FileLength = Client->binaryFile.tellg();
@@ -207,7 +228,7 @@ void Response::InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server
             if (RequestHeader.at("Status").size() != strspn(RequestHeader.at("Status").c_str(), "0123456789"))
                 StatusCode = 400;
             else {
-                StatusCode = stoi(RequestHeader.at("Status"));
+                StatusCode = atoi(RequestHeader.at("Status").c_str());
                 RequestHeader.erase(it);
             }
         }
@@ -251,7 +272,7 @@ void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
     if (Client->IsHeaderSended)
         Client->Bytes_Sended += S_sended;
-    if (S_sended < 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
+    if (S_sended <= 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
         Server.PrintStatus(Client->Client_Socket, 0, Path, StatusCode);
         Client->binaryFile.close();
         Client->Client_Hamr = Response_Completed;

@@ -1,26 +1,13 @@
 #include "Server_Master.hpp"
-
-//--------------STATIC_VARIABLES------------
+#include "Client_Gymir.hpp"
 
 Config Server_Master::conf;
 
 int Server_Master::reuse = 1;
 
-// Derya_Request Server_Master::Request_parser;
-
-//------------------------------------------
-
-//r-----------------------------------------
-
-//--------------STATIC_METHODES------------
-
 Server_Master* Server_Master::Draupnir(){
     return (new Server_Master());
 }
-
-//-----------------------------------------
-
-//r----------------------------------------
 
 Server_Master::Server_Master():event_tracker(0){
     kq = kqueue();
@@ -45,7 +32,7 @@ std::string Server_Master::getContentType(const char* resp) {
 }
 
 std::string Server_Master::getReverseContentType(const char* resp) {
-	std::string Default = ".html";
+	std::string Default = "";
     for (std::map<std::string, std::string>::iterator formula = ContentTypes.begin(); formula != ContentTypes.end(); formula++) {
         if (formula->second == resp)
             return formula->first;
@@ -55,13 +42,13 @@ std::string Server_Master::getReverseContentType(const char* resp) {
 
 Server_Master::~Server_Master(){}
 
-Server_Master::Server_Master(int sk,const char *port):Server_Socket(sk){
+Server_Master::Server_Master(int sk):Server_Socket(sk){
     memset(changelist,0,sizeof(changelist));
 }
 
-void Server_Master::Change_Socket_To_Non_Block(int &fd){
+void Server_Master::Change_Socket_To_Non_Block(int &fd) {
     if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0)
-        perror("FCNTL Error");
+        perror("fcntl");
 }
 
 void Server_Master::Set_up_listeners(const char *port){
@@ -95,7 +82,7 @@ void Server_Master::Set_up_listeners(const char *port){
         exit(EXIT_FAILURE);
     }
 
-    // freeaddrinfo(servinfo);
+    freeaddrinfo(servinfo);
         
     if (listen(Server_Socket,SOMAXCONN) < 0) {
         perror("Listen Error");
@@ -110,13 +97,18 @@ void Server_Master::Upp_ports(char *Config_file){
         std::cout << "Supply a Config File for the Server to work!" << std::endl;
         exit(EXIT_FAILURE);
     }
+    struct stat sb;
+    if (stat(Config_file, &sb)) {
+        std::cout << "Invalid Configuration File" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     conf.ConfigParse(Config_file);
     PrintStatus();
    for(std::set<std::string>::iterator it = conf.Ports.begin();it != conf.Ports.end();it++)
         Set_up_listeners((*it).c_str());
 }
 
-int Server_Master::multiplexing(){
+int Server_Master::multiplexing() {
     struct timespec timeout;
     timeout.tv_sec = 1;
     timeout.tv_nsec = 0;
@@ -126,9 +118,7 @@ int Server_Master::multiplexing(){
         for (int i = 0; i < n_ev ; i++) {
             if (retrieved_events[i].filter == EVFILT_READ) {
                 if (listeners.find(retrieved_events[i].ident) != listeners.end()){
-                    //====================== ACCEPT CONNECTION ========================
-                    int client_socket = accept((*listeners.find(retrieved_events[i].ident)),(struct sockaddr *)(&servinfo->ai_addr),
-                        reinterpret_cast<socklen_t*>(&servinfo->ai_addrlen));
+                    int client_socket = accept((*listeners.find(retrieved_events[i].ident)), NULL, NULL);
                     Client_Gymir *client_copy = new Client_Gymir(client_socket);
                     if (client_socket < 0) CLOSING_SOCKET(client_socket);
                     PrintStatus(client_socket);
@@ -171,34 +161,53 @@ void Server_Master::Sending_Part(struct kevent *retreived_events, int how_many_e
             }
             if (it->second->ResponsePath.getStatusCode() != -1)
                 it->second->ResponsePath.SendResponse(it->second, *this);
-            else it->second->ResponsePath.setStatusCode(200);
-            if (it->second->Client_Hamr == Response_Completed) DropClient(it);
+            else
+                it->second->ResponsePath.setStatusCode(200);
+            if (it->second->Client_Hamr == Response_Completed)
+                DropClient(it);
             else it++;
         }
         else it++;
     }
 }
 
-int Server_Master::Fill_Request_State_it(Client_Gymir* Client) {
+int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
     char buffer[Max_Reads + 1];
-    if (Client->Client_Hamr == Still_Reading_Request) {
-        int R_received = recv(Client->Client_Socket, buffer, Max_Reads, 0);
-        if (R_received <= 0) return 1;
-        buffer[R_received] = 0;
-        std::string get_when_ended(buffer);
-        Client->Request.append(buffer);
-        Client->ResponsePath.setStatusCode(Client->Request_parser.Parse_Request(Client->Request));
-        if (get_when_ended.find("\r\n") != std::string::npos) {
-            PrintStatus(Client->Client_Socket, Client->Request_parser.HTTPMethod.c_str(), Client->Request_parser.Path);
-            Add_Event_to_queue_ker(Client->Client_Socket,EVFILT_WRITE);
-            Delete_Event_to_queue_ker(Client->Client_Socket,EVFILT_READ);
-            Client->Client_Hamr = Response_Still_Serving;
+    memset(buffer,0,Max_Reads);
+    int stat = 0;
+    if (client_request_state->Client_Hamr == Still_Reading_Request) {
+        client_request_state->returnRead = recv(client_request_state->Client_Socket,buffer, Max_Reads, 0);
+        if (client_request_state->returnRead <= 0) {
+            if (client_request_state->Request_parser.HTTPMethod.size() && client_request_state->Request_parser.HTTPMethod == "POST")
+                PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
+            return 1;
+        }
+        buffer[client_request_state->returnRead] = 0;
+        client_request_state->Request.assign(buffer , buffer + client_request_state->returnRead);
+        client_request_state->Request_parser.Parse_Request(*client_request_state, *this);
+        stat = client_request_state->Request_parser.stat_method_form.first;
+        if (client_request_state->Request_parser.stat_method_form.second == POST && (stat == 200 || stat == 400)){
+            PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
+            client_request_state->ResponsePath.setStatusCode(stat);
+            Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+            Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
+            client_request_state->Client_Hamr = Response_Still_Serving;
+
+        }
+        else if ((client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE) 
+                && (stat == 200 || stat == 400)) {
+            PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
+            client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request.first;
+            client_request_state->ResponsePath.setStatusCode(stat);
+            if (client_request_state->Request.find("\r\n\r\n") != std::string::npos || client_request_state->Request.find("\r\n") != std::string::npos) {
+                Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
+                Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
+                client_request_state->Client_Hamr = Response_Still_Serving;
+            }
         }
     }
     return 0;
 }
-
-int Server_Master::Get_Server_Socket() const { return (Server_Socket); }
 
 bool Server_Master::Add_Event_to_queue_ker(int fd , int filter){
     EV_SET(&events[0], fd, filter, EV_ADD, 0, 0, NULL);
@@ -213,26 +222,11 @@ bool Server_Master::Disable_Event_from_queue_ker(int &fd , int filter){
     return (true);
 }
 
-bool Server_Master::Enable_Event_from_queue_ker(int &fd , int filter){
-    struct kevent event[1];
-    EV_SET(&event[0], fd, filter, EV_ENABLE , 0, 0, NULL);
-    kevent(kq,event,1,NULL,0,NULL);
-    return (true);
-}
-
-
 bool Server_Master::Delete_Event_to_queue_ker(int fd , int filter){
     struct kevent event;
     EV_SET(&event, fd, filter, EV_DELETE, 0, 0, NULL);
     kevent(kq, &event, 1, NULL, 0, NULL);
     return (true);
-}
-
-void Server_Master::Print_Connection_Info() {
-    for(std::map<int,Client_Gymir*>::iterator it = Clients.begin(); it != Clients.end();it++){
-        if (it->second)
-            std::cout << it->second->Client_Ip_Port_Connected.first << ":" << it->second->Client_Ip_Port_Connected.second << std::endl;
-    }
 }
 
 void Server_Master::Add_Client(Client_Gymir *client_copy){
@@ -251,28 +245,9 @@ void Server_Master::Delete_Client(Client_Gymir *client_copy){
     delete client_copy;
 }
 
-bool Server_Master::Check_Hamr_Clients(){
-    for(std::map<int,Client_Gymir *>::iterator it = Clients.begin(); it != Clients.end();it++){
-        if( it->second->Client_Hamr == Still_Reading_Request)
-            return false;
-    }
-    return true;
-}
-
-bool Server_Master::Is_in_write_event(int &client_fd,struct kevent *retrieved_events){
-    int n_ev = kevent(Server_Master::kq,NULL,0,retrieved_events,MAX_CONNECTIONS,NULL);
-    if (n_ev <  0)
-        perror("Kevent");
-    for (int i = 0; i < n_ev; i++) {
-        if (Clients.find(retrieved_events[i].ident) != Clients.end())
-            return true;
-    }
-    return false;
-}
-
 int Server_Master::Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev){
     for(int i = 0 ; i < n_ev ; i++){
-        if (fd == retrieved_events[i].ident) {
+        if (fd == static_cast<int>(retrieved_events[i].ident)) {
             if (retrieved_events[i].filter == EVFILT_READ)
                 return READ;
             else if (retrieved_events[i].filter == EVFILT_WRITE)
