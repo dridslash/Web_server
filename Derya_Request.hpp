@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Derya_Request.hpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnaqqad <mnaqqad@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/28 10:30:08 by mnaqqad           #+#    #+#             */
-/*   Updated: 2023/04/10 11:00:58 by mnaqqad          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 #include "Server_Master.hpp"
 
@@ -20,9 +8,11 @@ enum check_for_methods{
     NONE = -1
 };
 
-enum file_state{
-    still_reading,
-    readed
+enum phase{
+    header_with_some_potential_payload,
+    pure_payload,
+    // content_lenght,
+    chuncked
 };
 
 class Client_Gymir;
@@ -39,11 +29,13 @@ class Derya_Request{
     std::fstream Post_body_file;
     std::pair<int,check_for_methods> stat_method_form;
     std::pair<std::string,std::string> Hold_sliced_Request;
+    phase flag_fill_file;
     unsigned long content_length;
-    int flag_fill_file;
+    unsigned long chuncked_size;
+    unsigned long margin_chuncked;
 
     //FUNCTION PARSING REQUEST
-    int Parse_Request(Client_Gymir& Client,Server_Master serv,unsigned long R_v);
+    int Parse_Request(Client_Gymir& Client, Server_Master serv);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);
@@ -52,11 +44,10 @@ class Derya_Request{
     bool look_for_BWS(std::string field_name);
 
     //DETERMEN BODY AND HEADER
-    std::pair<std::string,std::string> Get_Requets_Header(std::string Request,std::pair<int,check_for_methods> stat_method,Server_Master serv);
+    std::pair<std::string,std::string> Get_Requets_Header(std::string Request);
 
     //CHECK SIZE OF FILE POSTED
-
     unsigned long check_file_size(std::fstream &file);
 
-    // client_request_state->Request.substr(0,client_request_state->Request.find("\r\n\r\n"))
+    int parseReq(Client_Gymir& Client);
 };

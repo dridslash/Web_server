@@ -15,8 +15,12 @@ int Response::PostMethod(Client_Gymir* & Client, Server_Master& Server, std::str
     if (getResourceType()) { // if it's directory
         StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
-        StatusCode = IsDirHaveIndexFiles(Server.conf);
-        if (StatusCode != 200) return StatusCode;
+        if (RequestHeader.find("Content-Type") != RequestHeader.end() && RequestHeader.at("Content-Type").find("multipart/form-data") != std::string::npos) {
+            StatusCode = IsDirHaveIndexFiles(Server.conf);
+            if (StatusCode != 200) return StatusCode;
+        }
+        else
+            StatusCode = 201;
     }
     struct stat sb;
     if (stat(Client->FilePath.c_str(), &sb) == 0) {

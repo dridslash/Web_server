@@ -25,7 +25,7 @@ class Server_Master {
 
         Server_Master();
         ~Server_Master();
-        Server_Master(int sk,const char *port);
+        Server_Master(int sk);
         std::string getContentType(const char*);
         std::string getReverseContentType(const char* resp);
         void Upp_ports(char *Config_file);
@@ -35,18 +35,12 @@ class Server_Master {
         bool Add_Event_to_queue_ker(int fd , int filter);
         bool Disable_Event_from_queue_ker(int &fd , int filter);
         bool Delete_Event_to_queue_ker(int fd , int filter);
-        bool Enable_Event_from_queue_ker(int &fd , int filter);
         void Change_Socket_To_Non_Block(int &fd);
-        int Get_Server_Socket()const;
-        void Print_Connection_Info();
         static Server_Master* Draupnir();
         void Add_Client(Client_Gymir *client_copy);
         void Delete_Client(Client_Gymir *client_copy);
         void Reading_Part(int n_ev);
-        bool Check_Hamr_Clients();
         int Fill_Request_State_it(Client_Gymir* client_request_state);
-        bool Is_in_write_event(int &client_fd,struct kevent *retrieved_events);
-        void Send_Response_State_It(Client_Gymir* client_request_state, Response& ResponsePath);
         int Search_in_Events(int fd, struct kevent *retrieved_events,int n_ev);
         void Sending_Part(struct kevent *retreived_events, int how_many_events);
         void DropClient(std::map<int,Client_Gymir*>::iterator& it);

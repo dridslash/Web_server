@@ -1,7 +1,6 @@
 #include "../Client_Gymir.hpp"
 #include "../Server_Master.hpp"
 
-
 Response::Response() : StatusCode(200) { LocationIndex = new std::pair<int, int>(-1, -1); }
 Response::~Response() { delete LocationIndex; }
 std::string Response::getHTTPMethod() const { return HTTPMethod; }
@@ -83,14 +82,12 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
 
 int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Derya_Request& request) {
     std::map<std::string, std::string>::iterator it = RequestHeader.find("Transfer-Encoding");
-    if (it != RequestHeader.end() && it->second == "chunked")//Not Implemented (Server Error)
-        return 501;
-    if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST")// Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
+    if (it == RequestHeader.end() && RequestHeader.find("Content-Length") == RequestHeader.end() && HTTPMethod == "POST") // Bad Request (client Error, POST method need to come with Transfer-Encoding or Content-Length)
         return 400;
     std::ifstream in_file(Client->FilePath.c_str());
     in_file.seekg(0, std::ios::end);
     int file_size = in_file.tellg();
-    if (file_size > stoi(Server.conf.MaxBodySize))// Request Body too large
+    if (file_size > atoi(Server.conf.MaxBodySize.c_str()))// Request Body too large
         return 413;
     in_file.close();
     delete LocationIndex;
@@ -231,7 +228,7 @@ void Response::InitResponseHeaders(Client_Gymir* & Client, Server_Master& Server
             if (RequestHeader.at("Status").size() != strspn(RequestHeader.at("Status").c_str(), "0123456789"))
                 StatusCode = 400;
             else {
-                StatusCode = stoi(RequestHeader.at("Status"));
+                StatusCode = atoi(RequestHeader.at("Status").c_str());
                 RequestHeader.erase(it);
             }
         }

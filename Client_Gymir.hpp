@@ -14,22 +14,16 @@ enum Hávamál {
 class Response;
 class Client_Gymir {
     public:
+        int Client_Socket;
         Hávamál Client_Hamr;
         Response ResponsePath;
         Derya_Request Request_parser;
-        Client_Gymir();
-        Client_Gymir(int sockcl);
-        ~Client_Gymir();
-        int Client_Socket;
-        struct sockaddr_in Own_addr;
-        static Client_Gymir* Draupnir_Smár(int sockcl);
-        void Set_up_ip_port();
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
-        std::string Request;
         char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;
         bool IsHeaderSended;
+        std::string Request;
         std::ifstream binaryFile;
         int FileLength;
         int fd[2];
@@ -42,4 +36,16 @@ class Client_Gymir {
         char RequestMethod[BUFFER_SIZE], Status[BUFFER_SIZE], HttpCookie[BUFFER_SIZE];
         char ContentLength[BUFFER_SIZE], ContentType[BUFFER_SIZE], QueryString1[BUFFER_SIZE];
         char PathInfo[BUFFER_SIZE], ScriptFileName[BUFFER_SIZE];
+        int returnRead;
+        std::string chunckedRequest;
+        std::string chunkedBuffer;
+        int ChunkedSize;
+        int RequestSize;
+        struct sockaddr_in Own_addr;
+        static Client_Gymir* Draupnir_Smár(int sockcl);
+
+        Client_Gymir();
+        Client_Gymir(int sockcl);
+        ~Client_Gymir();
+        void Set_up_ip_port();
 };

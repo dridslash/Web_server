@@ -1,5 +1,7 @@
 #include "ConfigFile.hpp"
 
+
+
 LocationBlocks::LocationBlocks() : AutoIndex("off") {
     httpmethods = new std::vector<std::string>();
     index = new std::vector<std::string>();
@@ -144,7 +146,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             // if their is more than one value, then
             while (Store[++i].find(';') == std::string::npos) {
                 if (!Dir && Store[i].size() != strspn(Store[i].c_str(), "0123456789")) return std::make_pair(std::make_pair("error_page", Store[i]), 1);
-                if (!Dir && (stoi(Store[i]) < 300 || stoi(Store[i]) > 599)) return std::make_pair(std::make_pair("error_page", Store[i]), -2);
+                if (!Dir && (atoi(Store[i].c_str()) < 300 || atoi(Store[i].c_str()) > 599)) return std::make_pair(std::make_pair("error_page", Store[i]), -2);
                 if (Directives.find(Store[i]) != Directives.end()) return std::make_pair(std::make_pair(Directive, Store[i]), 1);
                 Values.push_back(Store[i]);
             }
@@ -155,7 +157,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
                 std::set<int> ValueOfSet;
                 for (size_t i = 0; i < Values.size() - 1; i++) {
                     if (Values[i].size() != strspn(Values[i].c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
-                    int var = stoi(Values[i]);
+                    int var = atoi(Values[i].c_str());
                     if (var < 300 || var > 599) return std::make_pair(std::make_pair(Store[i+1], Store[i]), -2);
                     ValueOfSet.insert(var);
                 }
@@ -190,7 +192,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
             if (Dir == 3) {
                 if (Values.size() > 2) return std::make_pair(std::make_pair("return", Store[i-1]), 1);
                 if (Values[0].size() != strspn(Values[0].c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 1);
-                if (stoi(Values[0]) < 0 || stoi(Values[0]) > 999) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 4);
+                if (atoi(Values[0].c_str()) < 0 || atoi(Values[0].c_str()) > 999) return std::make_pair(std::make_pair(Store[i-2], Store[i-1]), 4);
             }
             if (Dir == 1) {
                 for (size_t i = 1; i < Values.size(); i++) {
@@ -233,7 +235,7 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             }
             else Port = Value;
             if (Port.size() != strspn(Port.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
-            if (stoi(Port) > 65535 || stoi(Value) <= 0) return std::make_pair(std::make_pair(Store[i-1], Port), 3);
+            if (atoi(Port.c_str()) > 65535 || atoi(Port.c_str()) <= 0) return std::make_pair(std::make_pair(Store[i-1], Port), 3);
             server.listen.insert(std::make_pair(Port, Host));
             if (server.listen.find("80") != server.listen.end())
                 server.listen.erase(server.listen.find("80"));

@@ -77,19 +77,15 @@ int Response::ParseCGIHeaders(std::string buffer) {
     int index_offset = 0;
     RequestHeader.clear();
     while(std::getline(getHeaders,key_value_geminie)) {
-        if (key_value_geminie.find("\r\n\r\n") != std::string::npos)
-            return 0;
-        if (key_value_geminie.find(":") == std::string::npos)
-            return 1;
+        if (key_value_geminie == "\r") return 0;
+        if (key_value_geminie.find(":") == std::string::npos) return 1;
         index_offset = key_value_geminie.find(":") + 1;
         key = key_value_geminie.substr(0,index_offset - 1);
         value = key_value_geminie.substr(index_offset + 1);
         value.pop_back();
         if (key == "Content-type" && value.find(";") != std::string::npos)
             value = value.substr(0, value.find(";"));
-        if (look_for_BWS(key) || isspace(value[0]))
-            return 1;
-        RequestHeader.insert(std::make_pair(key,value)); 
+        RequestHeader.insert(std::make_pair(key,value));
     }
     return 0;
 }
@@ -117,7 +113,7 @@ int Response::HandleCGIprogram(Client_Gymir* Client, Server_Master& Server) {
     if (ReadBuffer(*Client) == 0) return -1;
     close(Client->fd[1]);
     close(Client->fd[0]);
-    StatusCode = ParseCGIHeaders(Client->out);
+    if (ParseCGIHeaders(Client->out)) return 500;
     StatusCode = ParseBody(Client->out, Server);
     return StatusCode;
 }
@@ -139,5 +135,5 @@ int Response::ParseBody(std::string buffer, Server_Master& Server) {
     File << myfile;
     Path = FileName;
     File.close();
-    return 200;
+    return StatusCode;
 }
