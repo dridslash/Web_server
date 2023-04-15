@@ -45,11 +45,19 @@ std::pair<int, int>  Response::getLocationBlockOfTheRequest(Config config) {
     if (ServerThatMatchIndex == -1) {
         // get the Server that most matching the request by ServerName
         for (it = ServersThatMatchThePort.begin(); it != ServersThatMatchThePort.end(); it++) {
-            if (it->second.first.ServerName == "localhost" && Host == "127.0.0.1") {
+            std::string HostIP;
+            if (RequestHeader.find("Host") != RequestHeader.end()) {
+                if (RequestHeader.at("Host").find(":") != std::string::npos)
+                    HostIP = RequestHeader.at("Host").substr(0, RequestHeader.at("Host").find(":"));
+                else
+                    HostIP = RequestHeader.at("Host");
+            }
+            else HostIP = Host;
+            if (RequestHeader.find("Host") != RequestHeader.end() && it->second.first.ServerName == "localhost" && HostIP == "127.0.0.1") {
                 ServerThatMatchIndex = it->first;
                 break;
             }
-            if (it->second.first.ServerName == Host || ServersThatMatchThePort.size() == 1) {
+            if (it->second.first.ServerName == HostIP || ServersThatMatchThePort.size() == 1) {
                 ServerThatMatchIndex = it->first;
                 break;
             }
@@ -168,11 +176,13 @@ int Response::IsDirHaveIndexFiles(Config config) {
             return 200;
         }
     }
-    for (std::vector<std::string>::iterator it = config.Servers[LocationIndex->first].index.begin(); it != config.Servers[LocationIndex->first].index.end(); it++) {
-        std::string PathFile = Path + *it;
-        if (stat(PathFile.c_str(), &sb) == 0) {
-            Path.append(*it);
-            return 200;
+    if (config.Servers[LocationIndex->first].Locations[LocationIndex->second]->index->size() == 0) {
+        for (std::vector<std::string>::iterator it = config.Servers[LocationIndex->first].index.begin(); it != config.Servers[LocationIndex->first].index.end(); it++) {
+            std::string PathFile = Path + *it;
+            if (stat(PathFile.c_str(), &sb) == 0) {
+                Path.append(*it);
+                return 200;
+            }
         }
     }
     return 403;
@@ -204,6 +214,9 @@ void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya
     if (StatusCode == 200) {
         StatusCode = getResponsePath(Client, Server, requestFile);
         if (StatusCode == -1) return;
+        std::cout << "PATH: " << Path << std::endl;
+        if (StatusCode == 200 && access(Path.c_str(), R_OK) == -1)
+            StatusCode = 403;
         if (StatusCode != 200 && StatusCode != 301)
             HandleErrorPages(Server.conf);
     }
@@ -270,6 +283,7 @@ void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
         ReadReturn = Client->binaryFile.gcount();
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
+    std::cout << Client->temp_resp << std::endl;
     if (Client->IsHeaderSended)
         Client->Bytes_Sended += S_sended;
     if (S_sended <= 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
