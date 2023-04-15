@@ -53,9 +53,9 @@ int Response::HandleExec(Client_Gymir* Client, Config config) {
     char *args[] = {Client->Arg0, Client->realPATH, 0};
     if (Client->c_pid == -1) return 500;
     else if (Client->c_pid == 0) {
-        dup2(Client->fd[1], 1);
         dup2(InputFile, 0);
         close(InputFile);
+        dup2(Client->fd[1], 1);
         execve(args[0], args, env);
         return 2;
     }

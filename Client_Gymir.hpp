@@ -18,12 +18,14 @@ class Client_Gymir {
         Hávamál Client_Hamr;
         Response ResponsePath;
         Derya_Request Request_parser;
+        struct sockaddr_in Own_addr;
+        static Client_Gymir* Draupnir_Smár(int sockcl);
         std::pair<char*, uint16_t >Client_Ip_Port_Connected;
-        char temp_resp[Max_Writes];
         int Bytes_received;
         int Bytes_Sended;
-        bool IsHeaderSended;
         std::string Request;
+        char temp_resp[Max_Writes];
+        bool IsHeaderSended;
         std::ifstream binaryFile;
         int FileLength;
         int fd[2];
@@ -40,9 +42,7 @@ class Client_Gymir {
         std::string chunckedRequest;
         std::string chunkedBuffer;
         int ChunkedSize;
-        int RequestSize;
-        struct sockaddr_in Own_addr;
-        static Client_Gymir* Draupnir_Smár(int sockcl);
+        unsigned long RequestSize;
 
         Client_Gymir();
         Client_Gymir(int sockcl);

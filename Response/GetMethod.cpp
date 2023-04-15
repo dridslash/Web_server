@@ -36,6 +36,7 @@ int Response::autoindex(const char *dirpath) {
     out << dirpath;
     out << "</h1><hr><pre>";
     readdir(dir);
+    readdir(dir);
     while ((entry = readdir(dir)) != NULL) {
         out << "<a href=\"";
         out << entry->d_name;

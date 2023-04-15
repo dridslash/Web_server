@@ -1,8 +1,8 @@
 #include "Server_Master.hpp"
 
-int main(int arc, char **argv) {
+int main(int argc, char **argv){
 
-    if (arc != 2) {
+    if (argc != 2) {
         std::cout << "Invalid Arguments" << std::endl;
         return -1;
     }

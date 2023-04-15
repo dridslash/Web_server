@@ -48,7 +48,7 @@ Server_Master::Server_Master(int sk):Server_Socket(sk){
 
 void Server_Master::Change_Socket_To_Non_Block(int &fd) {
     if (fcntl(fd, F_SETFL ,O_NONBLOCK) < 0)
-        perror("fcntl");
+        perror("FCNTL Error");
 }
 
 void Server_Master::Set_up_listeners(const char *port){
@@ -108,7 +108,7 @@ void Server_Master::Upp_ports(char *Config_file){
         Set_up_listeners((*it).c_str());
 }
 
-int Server_Master::multiplexing() {
+int Server_Master::multiplexing(){
     struct timespec timeout;
     timeout.tv_sec = 1;
     timeout.tv_nsec = 0;
@@ -118,6 +118,7 @@ int Server_Master::multiplexing() {
         for (int i = 0; i < n_ev ; i++) {
             if (retrieved_events[i].filter == EVFILT_READ) {
                 if (listeners.find(retrieved_events[i].ident) != listeners.end()){
+                    //====================== ACCEPT CONNECTION ========================
                     int client_socket = accept((*listeners.find(retrieved_events[i].ident)), NULL, NULL);
                     Client_Gymir *client_copy = new Client_Gymir(client_socket);
                     if (client_socket < 0) CLOSING_SOCKET(client_socket);
@@ -161,8 +162,7 @@ void Server_Master::Sending_Part(struct kevent *retreived_events, int how_many_e
             }
             if (it->second->ResponsePath.getStatusCode() != -1)
                 it->second->ResponsePath.SendResponse(it->second, *this);
-            else
-                it->second->ResponsePath.setStatusCode(200);
+            else it->second->ResponsePath.setStatusCode(200);
             if (it->second->Client_Hamr == Response_Completed)
                 DropClient(it);
             else it++;
@@ -184,18 +184,17 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
         }
         buffer[client_request_state->returnRead] = 0;
         client_request_state->Request.assign(buffer , buffer + client_request_state->returnRead);
-        client_request_state->Request_parser.Parse_Request(*client_request_state, *this);
+        client_request_state->Request_parser.Parse_Request(*client_request_state,*this);
         stat = client_request_state->Request_parser.stat_method_form.first;
-        if (client_request_state->Request_parser.stat_method_form.second == POST && (stat == 200 || stat == 400)){
+        if (client_request_state->Request_parser.stat_method_form.second == POST && (stat == 200 || stat == 400 || stat == 501)){
             PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
             client_request_state->ResponsePath.setStatusCode(stat);
             Add_Event_to_queue_ker(client_request_state->Client_Socket,EVFILT_WRITE);
             Disable_Event_from_queue_ker(client_request_state->Client_Socket,EVFILT_READ);
             client_request_state->Client_Hamr = Response_Still_Serving;
-
         }
         else if ((client_request_state->Request_parser.stat_method_form.second == GET || client_request_state->Request_parser.stat_method_form.second == DELETE) 
-                && (stat == 200 || stat == 400)) {
+                && (stat == 200 || stat == 400 || stat == 501)){
             PrintStatus(client_request_state->Client_Socket, client_request_state->Request_parser.HTTPMethod.c_str(), client_request_state->Request_parser.Path);
             client_request_state->Request = client_request_state->Request_parser.Hold_sliced_Request.first;
             client_request_state->ResponsePath.setStatusCode(stat);
@@ -208,6 +207,7 @@ int Server_Master::Fill_Request_State_it(Client_Gymir* client_request_state) {
     }
     return 0;
 }
+
 
 bool Server_Master::Add_Event_to_queue_ker(int fd , int filter){
     EV_SET(&events[0], fd, filter, EV_ADD, 0, 0, NULL);

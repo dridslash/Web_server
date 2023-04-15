@@ -35,7 +35,7 @@ class Derya_Request{
     unsigned long margin_chuncked;
 
     //FUNCTION PARSING REQUEST
-    int Parse_Request(Client_Gymir& Client, Server_Master serv);
+    int Parse_Request(Client_Gymir& Client,Server_Master serv);
     
     //FUNCTION PARSING REQUEST LINE
     void bolkr_Request_Line(std::string request_line);

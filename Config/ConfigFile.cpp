@@ -236,7 +236,10 @@ Config::ErrorBox    Config::DirectivesOneValue(LocationBlocks * location, Server
             else Port = Value;
             if (Port.size() != strspn(Port.c_str(), "0123456789")) return std::make_pair(std::make_pair(Store[i-1], Store[i]), 1);
             if (atoi(Port.c_str()) > 65535 || atoi(Port.c_str()) <= 0) return std::make_pair(std::make_pair(Store[i-1], Port), 3);
+            size_t Size = server.listen.size();
             server.listen.insert(std::make_pair(Port, Host));
+            if (Size == server.listen.size())
+                 return std::make_pair(std::make_pair(Value, Value), 6);
             if (server.listen.find("80") != server.listen.end())
                 server.listen.erase(server.listen.find("80"));
             Ports.insert(Port);
@@ -276,6 +279,9 @@ void Config::HandleErrors(ServerBlocks & server, Config::ErrorBox ErrorMsg) {
             exit(1);
         case 5:
             printf("\"%s\" directive invalid value\n", ErrorMsg.first.first.c_str());
+            exit(1);
+        case 6:
+            printf("a duplicate listen %s\n", ErrorMsg.first.first.c_str());
             exit(1);
         default:
             server.listen.erase(server.listen.begin());
