@@ -53,24 +53,15 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
     std::stringstream get_Request;
     get_Request << Client.Request;
     
-    //============= GETTING REQUEST LINE =================
     if (flag_fill_file == header_with_some_potential_payload){
-        // std::cout << "GET REQUEST LINE AND PARTING" << std::endl;
-    std::getline(get_Request,Request_Line);
-    //==================================================
-    
-    
-    //"======== REQUEST LINE PARTING ==========
+        std::getline(get_Request,Request_Line);    
         bolkr_Request_Line(Request_Line);
     }
-    //"========================================
     
         Hold_sliced_Request = Get_Requets_Header(Client.Request);
         if (flag_fill_file != pure_payload && flag_fill_file != chuncked){
-        if (Hold_sliced_Request.first.size() > 0){
-            // std::cout << "GOT REPLACED" << std::endl;
+        if (Hold_sliced_Request.first.size() > 0)
             get_Request << Hold_sliced_Request.first;
-        }
     //"===================== PARSING FIELDS ============================="
     std::string key_value_geminie;
     std::string key;
@@ -147,7 +138,6 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
                 }
             }else if (flag_fill_file == chuncked){
                 Client.chunckedRequest.append(Hold_sliced_Request.first);
-                // std::cout << "chuncked continue" << std::endl;
                 if (parseReq(Client) == 1) {
                     Post_body_file.close();
                     stat_method_form = std::make_pair(200,POST);
@@ -155,15 +145,6 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
                 }
             }
     }
-    
-    //=============================== END_OF_PARSING ====================================
-    
-    //  for(std::map<std::string,std::string>::iterator it = RequestHeader.begin(); it != RequestHeader.end();it++){
-    //     std::cout << "key -->" << it->first << "\nvalue -->" << it->second << std::endl;
-    // }
-    //==================================================================================
-    // std::cout << "stat_method_form.first : " << Path << std::endl;
-    // std::cout << stat_method_form.first << std::endl;
     if (HTTPMethod == "GET" || HTTPMethod == "DELETE")
         stat_method_form = std::make_pair(200,GET);
     return (-1);
@@ -186,11 +167,8 @@ bool Derya_Request::look_for_BWS(std::string field_name){
 }
 
 std::pair<std::string,std::string> Derya_Request::Get_Requets_Header(std::string Request){
-    // std::cout << "SLICING" << std::endl;
-    // std::cout << Request << std::endl;
     std::string Request_holder;
     if ((HTTPMethod.compare("GET") == 0 || HTTPMethod.compare("DELETE") == 0) && flag_fill_file == header_with_some_potential_payload){
-        // std::cout << "IN GET/DELETE WORK" << std::endl;
          Request_holder = Request.substr(0,Request.find("\r\n\r\n"));
         if (HTTPMethod == "GET")
         stat_method_form = std::make_pair(-1,GET);
@@ -199,17 +177,13 @@ std::pair<std::string,std::string> Derya_Request::Get_Requets_Header(std::string
         return (std::make_pair(Request_holder,""));
     }
     else if (HTTPMethod.compare("POST") == 0){
-        // std::cout << "IN POST CONDITON" << std::endl;
         if (flag_fill_file != pure_payload && flag_fill_file != chuncked){
-            // std::cout << "Taking first header/body" << std::endl;
             Request_holder = Request.substr(0,Request.find("\r\n\r\n"));
             std::string take_body = Request.substr(Request.find("\r\n\r\n") + 4);
             stat_method_form = std::make_pair(-1,POST);
             return (std::make_pair(Request_holder,take_body));
-        }else{
-            // std::cout << "just taking the body" << std::endl;
-            return (std::make_pair(Request,""));
         }
+        return (std::make_pair(Request,""));
     }
     return (std::make_pair("",""));
 }
