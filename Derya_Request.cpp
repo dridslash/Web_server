@@ -147,7 +147,7 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
                 }
             }else if (flag_fill_file == chuncked){
                 Client.chunckedRequest.append(Hold_sliced_Request.first);
-                std::cout << "chuncked continue" << std::endl;
+                // std::cout << "chuncked continue" << std::endl;
                 if (parseReq(Client) == 1) {
                     Post_body_file.close();
                     stat_method_form = std::make_pair(200,POST);
@@ -162,8 +162,8 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
     //     std::cout << "key -->" << it->first << "\nvalue -->" << it->second << std::endl;
     // }
     //==================================================================================
-    std::cout << "stat_method_form.first : " << Path << std::endl;
-    std::cout << stat_method_form.first << std::endl;
+    // std::cout << "stat_method_form.first : " << Path << std::endl;
+    // std::cout << stat_method_form.first << std::endl;
     if (HTTPMethod == "GET" || HTTPMethod == "DELETE")
         stat_method_form = std::make_pair(200,GET);
     return (-1);
@@ -199,7 +199,7 @@ std::pair<std::string,std::string> Derya_Request::Get_Requets_Header(std::string
         return (std::make_pair(Request_holder,""));
     }
     else if (HTTPMethod.compare("POST") == 0){
-        std::cout << "IN POST CONDITON" << std::endl;
+        // std::cout << "IN POST CONDITON" << std::endl;
         if (flag_fill_file != pure_payload && flag_fill_file != chuncked){
             // std::cout << "Taking first header/body" << std::endl;
             Request_holder = Request.substr(0,Request.find("\r\n\r\n"));

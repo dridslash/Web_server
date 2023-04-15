@@ -214,7 +214,7 @@ void Response::MakeResponse(Client_Gymir* & Client, Server_Master& Server, Derya
     if (StatusCode == 200) {
         StatusCode = getResponsePath(Client, Server, requestFile);
         if (StatusCode == -1) return;
-        std::cout << "PATH: " << Path << std::endl;
+        // std::cout << "PATH: " << Path << std::endl;
         if (StatusCode == 200 && access(Path.c_str(), R_OK) == -1)
             StatusCode = 403;
         if (StatusCode != 200 && StatusCode != 301)
@@ -283,7 +283,7 @@ void Response::SendResponse(Client_Gymir* & Client, Server_Master& Server) {
         ReadReturn = Client->binaryFile.gcount();
     }
     S_sended = send(Client->Client_Socket, Client->temp_resp, ReadReturn, 0);
-    std::cout << Client->temp_resp << std::endl;
+    // std::cout << Client->temp_resp << std::endl;
     if (Client->IsHeaderSended)
         Client->Bytes_Sended += S_sended;
     if (S_sended <= 0 || (Client->IsHeaderSended && ReadReturn < Max_Writes)) {
