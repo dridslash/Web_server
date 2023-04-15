@@ -100,6 +100,7 @@ int Response::getResponsePath(Client_Gymir* & Client, Server_Master& Server, Der
     in_file.close();
     delete LocationIndex;
     LocationIndex = new std::pair<int, int>(getLocationBlockOfTheRequest(Server.conf));
+    std::cout << LocationIndex->first << ":" << LocationIndex->second << std::endl;
     if (LocationIndex->first == -1) // Location not found (Client Error)
         return 404;
     if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->Return->size()) { // There is redirection
