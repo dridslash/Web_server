@@ -102,7 +102,7 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
         }
         else{
                 if (RequestHeader.find("Content-Length") != RequestHeader.end()){
-                    content_length = stoi(RequestHeader.at("Content-Length"));
+                    content_length = atoi(RequestHeader.at("Content-Length").c_str());
                     Client.FilePath = "../test";
                     Client.FilePath.append(serv.getReverseContentType(RequestHeader.at("Content-Type").c_str()));
                     Post_body_file.open(Client.FilePath ,std::ios::out | std::ios::app);

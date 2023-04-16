@@ -161,7 +161,7 @@ Config::ErrorBox    Config::DirectivesMoreThanOneValue(LocationBlocks * location
                     if (var < 300 || var > 599) return std::make_pair(std::make_pair(Store[i+1], Store[i]), -2);
                     ValueOfSet.insert(var);
                 }
-                server.setErrorPage(std::make_pair(ValueOfSet, Values.back()));
+                server.setErrorPage(std::make_pair(ValueOfSet, Values[Values.size() - 1]));
             }
             else (server.*arr[Dir])(Values);
         }
