@@ -91,6 +91,10 @@ int Derya_Request::Parse_Request(Client_Gymir& Client,Server_Master serv){
         return (400);
     }
     if (HTTPMethod == "POST"){
+        if (RequestHeader.find("Content-Type") == RequestHeader.end()){
+                stat_method_form = std::make_pair(400,POST);
+                return (400);
+        }
         if (((RequestHeader.find("Content-Length") == RequestHeader.end() && RequestHeader.find("Transfer-Encoding") == RequestHeader.end())) 
             || (RequestHeader.find("Content-Length") != RequestHeader.end() && RequestHeader.find("Transfer-Encoding") != RequestHeader.end())){
                 stat_method_form = std::make_pair(400,POST);
