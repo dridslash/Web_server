@@ -1,6 +1,9 @@
 # WEBSERV
 ## Webserv Description
 
+
+### HTTP
+HTTP is an extensible protocol that relies on concepts like resources and Uniform Resource Identifiers (URIs), simple message structure, and client-server communication flow. On top of these basic concepts, numerous extensions have been developed over the years that add updated functionality and semantics with new HTTP methods or headers.
 this project is about writing our own HTTP server and testing it with an actual browser.
 
 ![fetching_a_page](https://github.com/dridslash/Web_server/assets/63309639/8d58575c-1dab-40c2-89af-da2cf3533fde)
