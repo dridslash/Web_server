@@ -1,4 +1,14 @@
 # Web_server
 
+## Webserv Description
 
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
+this project is about writing our own HTTP server and testing it with an actual browser.
+
+### Features implemented
+
+|    test1   |   test1   |
+--------------------------
+|            |           |
+|            |           |
+|            |           |
+--------------------------
