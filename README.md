@@ -1,6 +1,8 @@
 # WEBSERV
 ## Webserv Description
 
+The project involves creating a basic web server from scratch that is capable of handling HTTP requests and serving static files.
+The server must support HTTP methods, status codes, MIME types, concurrent connections, and request headers.
 
 ### HTTP
 HTTP is an extensible protocol that relies on concepts like resources and Uniform Resource Identifiers (URIs), simple message structure, and client-server communication flow. On top of these basic concepts, numerous extensions have been developed over the years that add updated functionality and semantics with new HTTP methods or headers.
