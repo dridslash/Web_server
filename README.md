@@ -4,6 +4,6 @@
 this project is about writing our own HTTP server and testing it with an actual browser.
 
 ### Features implemented
+![Uploading webserv-request-flow.jpeg…]()
 
-![webserv-request-flow.pdf](https://github.com/dridslash/Web_server/files/11994846/webserv-request-flow.pdf)
 
