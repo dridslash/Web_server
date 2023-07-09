@@ -48,6 +48,5 @@ this project is about writing our own HTTP server and testing it with an actual 
 
 
 ## Credits
-Oussama Ouazize --> https://github.com/oouazize
-
-Mohamed Khalil Naqqad --> https://github.com/dridslash
+<a href="https://github.com/oouazize" target="blank">**Oussama Ouazize**</a><br>
+<a href="https://github.com/dridslash" target="blank">**Mohamed Khalil Naqqad**</a>
