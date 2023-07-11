@@ -7,12 +7,13 @@ int Response::GetMethod(Client_Gymir* & Client, Server_Master& Server, std::stri
     if (getResourceType()) { // if it's directory
         StatusCode = IsURIHasSlashAtTheEnd(OldPath);
         if (StatusCode != 200) return StatusCode;
-        if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->AutoIndex == "on") {
-            StatusCode = autoindex(Path.c_str());
+        if (Server.conf.Servers[LocationIndex->first].Locations[LocationIndex->second]->index->size()) {
+            StatusCode = IsDirHaveIndexFiles(Server.conf);
+            if (StatusCode != 200) return StatusCode;
             return StatusCode;
         }
-        StatusCode = IsDirHaveIndexFiles(Server.conf);
-        if (StatusCode != 200) return StatusCode;
+        StatusCode = autoindex(Path.c_str());
+        return StatusCode;
     }
     StatusCode = HandleCGIprogram(Client, Server);
     return StatusCode;
